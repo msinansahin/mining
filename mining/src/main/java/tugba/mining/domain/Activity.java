@@ -1,6 +1,7 @@
 package tugba.mining.domain;
 
-import javax.persistence.Entity;
+
+import org.neo4j.ogm.annotation.NodeEntity;
 
 import groovy.transform.builder.Builder;
 import lombok.AllArgsConstructor;
@@ -8,12 +9,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@Entity
+//@Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@NodeEntity
 public class Activity extends BaseEntity {
 
 	private String activityName;

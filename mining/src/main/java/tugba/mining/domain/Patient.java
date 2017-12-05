@@ -1,13 +1,18 @@
 package tugba.mining.domain;
 
-import javax.persistence.Entity;
+import org.neo4j.ogm.annotation.NodeEntity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@Entity
+//@Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
+@NodeEntity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Patient extends BaseEntity {
 
 	private String patientClass;

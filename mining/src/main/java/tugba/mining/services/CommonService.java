@@ -3,15 +3,16 @@ package tugba.mining.services;
 import java.util.List;
 
 import tugba.mining.domain.BaseEntity;
+import tugba.mining.domain.Event;
 
 public interface CommonService {
 
-    <T extends BaseEntity> List<T> listAll(Class<T> clazz);
+    List<Event> listEvent();
 
-    <T extends BaseEntity> T getById(T clazz, Long id);
+    <T> T getById(Class <T> clazz, Long id);
 
     void saveOrUpdate(BaseEntity entity);
 
-    <T extends BaseEntity> void delete(T clazz, Long id);
+    <T> void delete(T clazz, Long id);
 
 }
