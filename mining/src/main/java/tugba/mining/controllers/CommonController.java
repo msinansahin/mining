@@ -5,7 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import tugba.mining.domain.Activity;
 import tugba.mining.dto.ProcessMap;
 import tugba.mining.services.CommonService;
 
@@ -22,5 +26,16 @@ public class CommonController {
 		return ResponseEntity.ok(map);
 		
 	}
+	
+	
+	
+	
+	@PostMapping("/activity")
+	public ResponseEntity<Activity> saveActivity(@RequestBody Activity activity) {
+		commonService.saveOrUpdate(activity);
+		return ResponseEntity.ok(activity);
+	}
+	
+	
 
 }
