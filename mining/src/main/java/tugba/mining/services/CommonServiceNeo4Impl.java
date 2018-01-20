@@ -29,9 +29,10 @@ public class CommonServiceNeo4Impl implements CommonService {
 	@Override
 	public List<Event> listEvent() {
 		List<Event> result = new ArrayList<>();
+		
 		eventRepository.findAll().forEach(event -> result.add(event));
 		return result;
-	}
+	} 						
 
 	@Override
 	public <T> T getById(Class<T> clazz, Long id) {

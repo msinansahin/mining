@@ -17,6 +17,6 @@ public class Patient extends BaseEntity {
 
 	private String patientClass;
 	private Integer age;
-	private String sex;
+	private String gender;
 
 }

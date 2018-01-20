@@ -7,15 +7,17 @@ public abstract class BaseEntity {
 
     //@Id
     //@GeneratedValue
-	@GraphId
-	private Long id;
+	@GraphId(name = "oid")
+	private Long oid;
 
-	public Long getId() {
-		return id;
+	public Long getOid() {
+		return oid;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setOid(Long oid) {
+		this.oid = oid;
 	}
+
+
 
 }
