@@ -1,6 +1,8 @@
 package tugba.mining.controllers;
 
 
+import java.io.File;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -37,6 +39,8 @@ public class CommonController {
 	public ResponseEntity<?> vtHazirla() {
 		// TODO excel dosyasından ya da bir yerden oku
 		// TODO neo'ya yaz
+		File file = new File("/mining/ecxce.xls");
+		
 		return ResponseEntity.ok(true);
 		
 	}
