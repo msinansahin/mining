@@ -32,5 +32,13 @@ public class CommonController {
 	}
 	
 	
+	
+	@GetMapping("/vt-hazirla")
+	public ResponseEntity<?> vtHazirla() {
+		// TODO excel dosyasından ya da bir yerden oku
+		// TODO neo'ya yaz
+		return ResponseEntity.ok(true);
+		
+	}
 
 }
