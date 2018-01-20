@@ -7,7 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+
 
 import tugba.mining.domain.Activity;
 import tugba.mining.dto.ProcessMap;
@@ -23,13 +23,8 @@ public class CommonController {
 	public ResponseEntity<ProcessMap> getProcessMap() {
 		ProcessMap map = new ProcessMap();
 		map.setEvents(commonService.listEvent());
-		return ResponseEntity.ok(map);
-		
+		return ResponseEntity.ok(map);	
 	}
-	
-	
-	
-	
 	@PostMapping("/activity")
 	public ResponseEntity<Activity> saveActivity(@RequestBody Activity activity) {
 		commonService.saveOrUpdate(activity);
