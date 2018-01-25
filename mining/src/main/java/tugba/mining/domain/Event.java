@@ -26,7 +26,6 @@ public class Event extends BaseEntity {
 	//@ManyToOne
 	@Relationship(type = "PATIENT", direction = Relationship.UNDIRECTED)
 	private Patient patient;
-	private Double patientId;
 	/*//@ManyToOne
 	@Relationship(type = "ACTIVITY", direction = Relationship.UNDIRECTED)
 	private Activity activity;*/

@@ -9,11 +9,11 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -26,11 +26,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import tugba.mining.domain.Activity;
-import tugba.mining.domain.Doctor;
 import tugba.mining.domain.Event;
-import tugba.mining.domain.Patient;
-import tugba.mining.domain.Surgery;
 import tugba.mining.dto.ProcessMap;
+import tugba.mining.repositories.EventRepository;
 import tugba.mining.services.CommonService;
 import tugba.mining.util.RowContext;
 
@@ -219,4 +217,12 @@ public class CommonController {
 
 		 return ResponseEntity.ok(true);
 	 }
+	
+	@Autowired
+	EventRepository er;
+	
+	@GetMapping("/test")
+	public ResponseEntity<?> test(Double patientId, String activity, Date startDate) {
+		return ResponseEntity.ok(er.findByPatientPatientIdAndActivityAndStartDate(patientId, activity, startDate));
+	}
 }
