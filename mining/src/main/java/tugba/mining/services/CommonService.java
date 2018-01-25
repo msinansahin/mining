@@ -4,6 +4,7 @@ import java.util.List;
 
 import tugba.mining.domain.BaseEntity;
 import tugba.mining.domain.Event;
+import tugba.mining.domain.Patient;
 
 public interface CommonService {
 
@@ -14,5 +15,9 @@ public interface CommonService {
     void saveOrUpdate(BaseEntity entity);
 
     <T> void delete(T clazz, Long id);
+
+	void deleteAll();
+
+
 
 }

@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Patient extends BaseEntity {
 
-	private String patientClass;
-	private Integer age;
+	private double patientId;
+	private double age;
 	private String gender;
 
 }
