@@ -10,13 +10,16 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 
 import tugba.mining.domain.Event;
-import tugba.mining.domain.Patient;
-import tugba.mining.domain.Surgery;
 
 @Repository
 public interface EventRepository extends GraphRepository<Event> {
-	List<Event> findByPatientIdAndActivityAndStartDate(Double patientId, String activity, Date startDate);
 	
+	List<Event> findByActivityAndStartDate(String activity, Date startDate);
+
+	List<Event> findByPatientPatientIdAndActivityAndStartDate(Double patientId, String activity, Date startDate);
+
+	//List<Event> findByPatientIdAndActivityAndStartDate(Double patientId, String activity, Date startDate);
+
 	@Query(value = "MATCH (event:Event) RETURN event;")
     Stream<Event> getAllEvents();
 }
