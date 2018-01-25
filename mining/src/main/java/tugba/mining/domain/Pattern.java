@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tugba.mining.domain.Patient.PatientBuilder;
 
 //@Entity
 @Data
@@ -16,11 +17,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @NodeEntity
-public class Pattern extends BaseEntity {
 
-	private String activityName;
-	
-	// diğerlerini ekle
-	
-	
+public class Pattern extends BaseEntity {
+	private Integer patternId;
+	private String trace;
+	private Integer eventNumber;
+	private String myPatients;
+
 }
