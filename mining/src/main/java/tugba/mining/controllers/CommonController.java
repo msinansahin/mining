@@ -223,7 +223,6 @@ public class CommonController {
 	
 	@GetMapping("/test")
 	public ResponseEntity<?> test(Double patientId, String activity, Date startDate) {
-		startDate = DateUtils.addHours(startDate, 2);
 		return ResponseEntity.ok(er.findByPatientPatientIdAndActivityAndStartDate(patientId, activity, startDate));
 	}
 }
