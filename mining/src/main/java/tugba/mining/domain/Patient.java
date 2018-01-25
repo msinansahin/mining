@@ -3,6 +3,7 @@ package tugba.mining.domain;
 import org.neo4j.ogm.annotation.NodeEntity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NodeEntity
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Patient extends BaseEntity {
 
 	private double patientId;

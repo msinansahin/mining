@@ -8,4 +8,5 @@ import tugba.mining.domain.Activity;
 
 @Repository
 public interface ActivityRepository extends GraphRepository<Activity> {
+	
 }

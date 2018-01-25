@@ -7,9 +7,11 @@ import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tugba.mining.domain.Patient.PatientBuilder;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -17,13 +19,14 @@ import lombok.NoArgsConstructor;
 @NodeEntity
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Event extends BaseEntity {
 
 	private Integer eventId;
 	//@ManyToOne
 	@Relationship(type = "PATIENT", direction = Relationship.UNDIRECTED)
 	private Patient patient;
-	
+	private Double patientId;
 	/*//@ManyToOne
 	@Relationship(type = "ACTIVITY", direction = Relationship.UNDIRECTED)
 	private Activity activity;*/
