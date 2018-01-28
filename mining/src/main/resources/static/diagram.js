@@ -8,7 +8,7 @@ function nodeStyle() {
 			new go.Binding("location", "loc", go.Point.parse)
 				.makeTwoWay(go.Point.stringify), {
 					fromSpot : go.Spot.BottomSide, // coming out from right side
-					toSpot : go.Spot.TopSide, // going into at left side
+					toSpot : go.Spot.TopRightSides, // going into at left side
 					// the Node.location is at the center of each node
 					locationSpot : go.Spot.Center,
 					// isShadowed: true,
@@ -18,6 +18,42 @@ function nodeStyle() {
 					// mouseLeave: function (e, obj) { showPorts(obj.part, false); }
 				}
 			];
+}
+
+/**
+ * bağlantı çeşitlerini oluşturur
+ * @param diagram
+ * @returns
+ */
+function linkTemplates(diagram) {
+	var $ = go.GraphObject.make; // for conciseness in defining templates
+
+	_.forEach(LINK_TEMPLATES, function(value) {
+		diagram.linkTemplateMap.add(value.category,
+				$(go.Link,  // the whole link panel
+						  {
+						    routing: go.Link.AvoidsNodes,
+						    curve: go.Link.JumpOver, //go.Link.Bezier,
+						    corner: 4, toShortLength: 4,
+						    relinkableFrom: true,
+						    relinkableTo: true,
+						    reshapable: true,
+						    resegmentable: true,
+						    // mouse-overs subtly highlight links:
+						    mouseEnter: function(e, link) { link.findObject("HIGHLIGHT").stroke = "rgba(30,144,255,0.2)"; },
+						    mouseLeave: function(e, link) { link.findObject("HIGHLIGHT").stroke = "transparent"; }
+						  },
+						  //new go.Binding("points").makeTwoWay(),
+						  $(go.Shape,  // the highlight shape, normally transparent
+						    { isPanelMain: true, strokeWidth: 8, stroke: "transparent", name: "HIGHLIGHT" }),
+						  $(go.Shape,  // the link path shape
+						    { isPanelMain: true, stroke: "gray", strokeWidth: Math.abs(value.sayi * 1) + 2 }),
+						  $(go.Shape,  // the arrowhead
+						    { toArrow: "standard", stroke: null, fill: "gray"}),
+							$(go.TextBlock, { segmentOffset: new go.Point(0, -10) },                        // this is a Link label
+							  new go.Binding("text", "text"))  
+						));
+	});
 }
 
 /**
@@ -40,10 +76,6 @@ function Diagram(data) {
 	// define a simple Node template
 	this.myDiagram.nodeTemplate = 
 		$(go.Node, "Auto",  // the Shape will go around the TextBlock
-				{
-					fromSpot: go.Spot.RightSide,  // coming out from right side
-					toSpot: go.Spot.LeftSide
-				},   // going into at left side
 				$(go.Shape, "RoundedRectangle", { strokeWidth: 0},
 					// Shape.fill is bound to Node.data.color
 					new go.Binding("fill", "color")),
@@ -53,54 +85,9 @@ function Diagram(data) {
 							new go.Binding("text", "key"))
 		);
 
+	linkTemplates(this.myDiagram);
+
 	/*
-	myDiagram.linkTemplate =
-	$(go.Link,
-		{ curve: go.Link.Bezier },  // Bezier curve
-		{ routing: go.Link.AvoidsNodes, corner: 10 },   // link route should avoid nodes
-	$(go.Shape),                           // this is the link shape (the line)
-	$(go.Shape, { toArrow: "Standard" }),  // this is an arrowhead
-	$(go.TextBlock, { segmentOffset: new go.Point(0, -10) },                        // this is a Link label
-	  new go.Binding("text", "text"))
-	);
-	*/
-
-	this.myDiagram.linkTemplatexx =
-		$(go.Link,
-		{ curve: go.Link.Bezier },
-		// { routing: go.Link.AvoidsNodes },
-		$(go.Shape),
-		$(go.Shape, { toArrow: "Standard" }),
-		$(go.TextBlock, { segmentOffset: new go.Point(0, -10) },                        // this is a Link label
-		  new go.Binding("text", "text"))
-		);
-
-	this.myDiagram.linkTemplate =
-		$(go.Link,  // the whole link panel
-		  {
-		    routing: go.Link.AvoidsNodes,
-		    curve: go.Link.JumpOver,
-		    corner: 5, toShortLength: 4,
-		    relinkableFrom: true,
-		    relinkableTo: true,
-		    reshapable: true,
-		    resegmentable: true,
-		    // mouse-overs subtly highlight links:
-		    mouseEnter: function(e, link) { link.findObject("HIGHLIGHT").stroke = "rgba(30,144,255,0.2)"; },
-		    mouseLeave: function(e, link) { link.findObject("HIGHLIGHT").stroke = "transparent"; }
-		  },
-		  //new go.Binding("points").makeTwoWay(),
-		  $(go.Shape,  // the highlight shape, normally transparent
-		    { isPanelMain: true, strokeWidth: 8, stroke: "transparent", name: "HIGHLIGHT" }),
-		  $(go.Shape,  // the link path shape
-		    { isPanelMain: true, stroke: "gray", strokeWidth: 2 }),
-		  $(go.Shape,  // the arrowhead
-		    { toArrow: "standard", stroke: null, fill: "gray"}),
-			$(go.TextBlock, { segmentOffset: new go.Point(0, -10) },                        // this is a Link label
-			  new go.Binding("text", "text"))  
-  
-		);
-
 	this.myDiagram.linkTemplateMap.add("flow",
 		  $(go.Link,
 		    { toShortLength: 8 },
@@ -114,12 +101,13 @@ function Diagram(data) {
 		        scale: 2.5
 		      })
 		  ));
+	*/
 	
 	this.myDiagram.nodeTemplateMap.add("",  // the default category
 		$(go.Node, "Spot", nodeStyle(),
 		  // the main object is a Panel that surrounds a TextBlock with a rectangular Shape
 		  $(go.Panel, "Auto",
-		    $(go.Shape, "Rectangle",
+		    $(go.Shape, "RoundedRectangle",
 		      { fill: "#00A9C9", stroke: null },
 		      new go.Binding("figure", "figure")),
 		    $(go.TextBlock,
