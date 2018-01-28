@@ -5,12 +5,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  
-  <link rel="stylesheet" href="./bootstrap-table.css">
+  <link rel="stylesheet" href="./lib/bootstrap-table.css">
   
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="./bootstrap-table.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+
+  <script src="./lib/bootstrap-table.js"></script>
+  <script src="./lib/go.js"></script>
+  <script src="./mining.js"></script>
+  <script src="./diagram.js"></script>
+  
   <style>
     /* Remove the navbar's default margin-bottom and rounded borders */ 
     .navbar {
@@ -47,115 +52,68 @@
 	
 	.key {font-weight: bold;}
   </style>
-<script src="go.js"></script>
 <script id="code">
-  function init() {
-    if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
 
-    var $ = go.GraphObject.make;  // for conciseness in defining templates
+	function init() {
+		nodeDataArray = [
+			{"oid":-1,"text": "", "category": "start"},
+			{"oid":1, "text":"Admision to Hospital", "sayi": "1163"},
+			{"oid":2, "text":"Change Service", "sayi": "203"},
+			{"oid":3, "text":"Change Department", "sayi": "56"},
+			{"oid":4, "text":"Surgery Started", "sayi": "1192"},
+			{"oid":5, "text":"Transfer to Intensive Care Unit", "sayi": "81"},
+			{"oid":6, "text":"Surgery Finished", "sayi": "1192"},
+			{"oid":7, "text":"Ex", "sayi": "18"},
+			{"oid":8, "text":"Transfer to a service", "sayi": "1168"},
+			{"oid":9, "text":"Discharged", "sayi": "1163"},
+			{"oid":-2,"text":"", "category": "end"}];
 
+		linkDataArray = [
+			{"from":-1, "to": 1, "text": 1101},
+			{"from": 1, "to": 2, "text": 112},
+			{"from": 1, "to": 3, "text": 22},
+			{"from": 1, "to": 4, "text": 985},
+			{"from": 2, "to": 4, "text": 96},
+			{"from": 3, "to": 4, "text": 34},
+			{"from": 4, "to": 5, "text": 46},
+			{"from": 4, "to": 6, "text": 1087},
+			{"from": 5, "to": 6, "text": 42},
+			{"from": 6, "to": 7, "text": 4},	
+			{"from": 7, "to": 8, "text": 4},	
+			{"from": 6, "to": 8, "text": 1059},
+			{"from": 8, "to": 9, "text": 1155},
+			{"from": 9, "to": -2, "text": 1122},
+			{"from": 9, "to": 1, "text": 25}];
+		
+		var data = new Data(nodeDataArray, linkDataArray);
+		data.prepare();
+		var diagram = new Diagram(data);		
+	}
+
+	function responseHanlder(res) {
+		var data = [];
+
+		for ( var key in res) {
+			data.push({
+				key : key,
+				value : res[key]
+			});
+		}
+		return data;
+	}
 	
-    myDiagram = $(go.Diagram, "myDiagramDiv",  // create a Diagram for the DIV HTML element
-                  {
-                    initialContentAlignment: go.Spot.Center,  // center the content
-                    "undoManager.isEnabled": true  // enable undo & redo
-					,layout: $(go.ForceDirectedLayout)
-                  });
+	var obj = {
+		"description" : "An extended Bootstrap table with radio, checkbox, sort, pagination, and other added features. (supports twitter bootstrap v2 and v3) ",
+		"key1" : "value1",
+		"key2" : "value2",
+		"key3" : "value3"
+	};
 
-    // define a simple Node template
-    myDiagram.nodeTemplate =
-      $(go.Node, "Auto",  // the Shape will go around the TextBlock
-        $(go.Shape, "RoundedRectangle", { strokeWidth: 0},
-          // Shape.fill is bound to Node.data.color
-          new go.Binding("fill", "color")),
-        $(go.TextBlock,
-          { margin: 8 },  // some room around the text
-          // TextBlock.text is bound to Node.data.key
-          new go.Binding("text", "key"))
-      );
-
-	/*
-	  myDiagram.linkTemplate =
-    $(go.Link,
-		{ curve: go.Link.Bezier },  // Bezier curve
-		{ routing: go.Link.AvoidsNodes, corner: 10 },   // link route should avoid nodes
-      $(go.Shape),                           // this is the link shape (the line)
-      $(go.Shape, { toArrow: "Standard" }),  // this is an arrowhead
-      $(go.TextBlock, { segmentOffset: new go.Point(0, -10) },                        // this is a Link label
-        new go.Binding("text", "text"))
-    );
-	*/
-	
-	myDiagram.linkTemplate =
-    $(go.Link,
-      { curve: go.Link.Bezier },
-	  // { routing: go.Link.AvoidsNodes },
-      $(go.Shape),
-      $(go.Shape, { toArrow: "Standard" }),
-	  $(go.TextBlock, { segmentOffset: new go.Point(0, -10) },                        // this is a Link label
-        new go.Binding("text", "text"))
-    );
-	
-	myDiagram.linkTemplateMap.add("flow",
-        $(go.Link,
-          { toShortLength: 8 },
-          $(go.Shape,
-            { stroke: "blue", strokeWidth: 5 }),
-          $(go.Shape,
-            {
-              fill: "blue",
-              stroke: null,
-              toArrow: "Standard",
-              scale: 2.5
-            })
-        ));
-	
-    // but use the default Link template, by not setting Diagram.linkTemplate
-
-    // create the model data that will be represented by Nodes and Links
-    myDiagram.model = new go.GraphLinksModel(
-    [
-      { key: "Alpha", color: "lightblue" },
-      { key: "Beta", color: "orange" },
-      { key: "Gamma", color: "lightgreen" },
-      { key: "Delta", color: "pink" },
-	  { key: "Sinan", color: "blue" }
-    ],
-    [
-      { from: "Alpha", to: "Beta", "category":"flow", text: "50" },
-      { from: "Alpha", to: "Gamma",  text: "12"},
-      { from: "Beta", to: "Beta", text: "24"},
-      { from: "Gamma", to: "Delta", text: "20" },
-      { from: "Delta", to: "Alpha", text: "40"},
-	  { from: "Sinan", to: "Delta",  "category":"flow", text: "5"},
-	  { from: "Beta", to: "Sinan", text: "15"}
-    ]);
-  }
-  
-  function responseHanlder(res) {
-    var data = [];
-
-    for (var key in res) {
-        data.push({
-            key: key,
-            value: res[key]
-        });
-    }
-    return data;
-}
-
-var obj = {
-    "description": "An extended Bootstrap table with radio, checkbox, sort, pagination, and other added features. (supports twitter bootstrap v2 and v3) ",
-    "key1": "value1",
-    "key2": "value2",
-    "key3": "value3"
-};
-
-$(function () {
-    $('#properties').bootstrapTable({
-        data: responseHanlder(obj)
-    });
-});
+	$(function() {
+		$('#properties').bootstrapTable({
+			data : responseHanlder(obj)
+		});
+	});
 </script>
 </head>
 <body onload="init()">
