@@ -23,6 +23,8 @@ public interface CommonService {
 	
 	void addRowContext(RowContext row);
 
+	void addPatterns();
+
 
 
 }

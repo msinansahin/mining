@@ -1,5 +1,7 @@
 package tugba.mining.services;
 
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,19 +14,22 @@ import tugba.mining.domain.BaseEntity;
 import tugba.mining.domain.Doctor;
 import tugba.mining.domain.Event;
 import tugba.mining.domain.Patient;
+import tugba.mining.domain.Pattern;
 import tugba.mining.domain.Surgery;
 import tugba.mining.repositories.ActivityRepository;
 import tugba.mining.repositories.DoctorRepository;
 import tugba.mining.repositories.EventRepository;
 import tugba.mining.repositories.PatientRepository;
 import tugba.mining.repositories.SurgeryRepository;
+import tugba.mining.repositories.PatternRepository;
 import tugba.mining.util.RowContext;
 
 @Service
 public class CommonServiceNeo4Impl implements CommonService {
 
 	public static Integer eventId = 0;
-
+	public static Integer patternId = 0;
+	
 	@Autowired
 	EventRepository eventRepository;
 
@@ -39,6 +44,9 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	@Autowired
 	DoctorRepository doctorRepository;
+	
+	@Autowired
+	PatternRepository patternRepository;
 
 	@Override
 	public List<Event> listEvent() {
@@ -93,6 +101,8 @@ public class CommonServiceNeo4Impl implements CommonService {
 			surgeryRepository.save((Surgery) entity);
 		else if (entity instanceof Doctor)
 			doctorRepository.save((Doctor) entity);
+		else if (entity instanceof Pattern)
+			patternRepository.save((Pattern) entity);
 	}
 
 	@Override
@@ -138,7 +148,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		}
 		// ameliyat_bas
 		Doctor surgeryDoctor = addDoctor(row.getSurgeryDoctor());
-		;
+		
 		// surgerystarted
 		addEvent(row.getEventId(), patient, "Surgery Started", row.getSurgeryStartDate(),
 				row.getDepartment(), row.getService(), surgeryDoctor, surgery);
@@ -194,7 +204,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 	private void addEvent(Integer eventId, Patient patient, String activity, Date activityDate, String department,
 			String service, Doctor doctor, Surgery surgery) {
 
-		if (true /*eventRepository.findByPatientIdAndActivityAndStartDate(patient.getPatientId(), activity, activityDate).isEmpty()*/) {
+		if ( eventRepository.findByPatientPatientIdAndActivityAndStartDate(patient.getPatientId(), activity, activityDate).isEmpty()) {
 
 			Event event = Event.builder()
 					.eventId(addEventId())
@@ -213,6 +223,14 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	}
 
+	private Integer addEventId() {
+		eventId = eventId + 1;
+		return eventId;
+	}
+	private Integer addPatternId() {
+		patternId = patternId + 1;
+		return patternId;
+	}
 	private Patient addPatient(Integer patienId, Integer age, String gender) {
 		Patient patient = null;
 		if (patientRepository.findByPatientId(patienId).isEmpty()) {
@@ -228,9 +246,55 @@ public class CommonServiceNeo4Impl implements CommonService {
 		return patient;
 	}
 
-	public static Integer addEventId() {
-		eventId = eventId + 1;
-		return eventId;
-	}
+	
 
+	@Override
+	public void addPatterns() {
+		
+		List<Event> events = eventRepository.findAllByOrderByPatientPatientIdAscStartDateAscEventIdAsc();
+		String road = "";
+        String nps = "";
+        int ei = -1;
+        int tei;
+		Iterator iterator = events.iterator();
+		while (iterator.hasNext())
+		{
+			 
+			Event e = (Event)iterator.next();
+			tei = (int) e.getPatient().getPatientId();
+			 if (tei != ei) {
+				 if (road.length() != 0) {
+                     road = road.substring(0, road.length() - 2);
+                     List<Pattern> patterns = patternRepository.findByRoad(road);
+                     Iterator iterator2 = patterns.iterator();
+                     if (iterator2.hasNext())
+                     {
+                    	
+                    	 Pattern p = (Pattern) iterator2.next();
+                    	 p.setEventNumber(p.getEventNumber() +1);
+                    	 p.setMyPatients( p.getMyPatients() + "," +ei );
+                    	 
+                    	 saveOrUpdate(p);
+                     }
+                     else {
+                    	 
+                    	 Pattern p = Pattern.builder()
+                    			 .patternId(addPatternId ())
+                    			 .trace(road)
+                    			 .eventNumber(1)
+                    			 .myPatients(Integer.toString(ei))
+                    			 .build();
+                     }
+                    	 
+				 }
+				 ei = tei;
+                 road = "";
+			}
+			road += e.getActivity().toLowerCase().trim() + "->";
+		}
+		
+		
+	}
 }
+
+

@@ -116,7 +116,8 @@ public class CommonController {
 	@GetMapping("/patterns")
 	public ResponseEntity<?> getPatterns() throws SQLException {
 		 
-			String minedColon = "activityname";
+			/*
+			 * String minedColon = "activityname";
 			String durationColon = null;
 		    final String CHARSET = "windows-1254";
 		    final String DBCLASSNAME = "org.apache.derby.jdbc.EmbeddedDriver";
@@ -176,45 +177,9 @@ public class CommonController {
                 stmt.execute("drop table pattern");
             } catch (Exception ex) {
             }
-            stmt.execute("create table pattern(road varchar(8192),count int,ps varchar(8192))");
-
-            ResultSet rs = stmt.executeQuery("select patientid,"+ minedColon+ " from event order by patientid,startdate,eventid");
-            ResultSet rs2;
-            Statement stmt2 = conn.createStatement();
-
-            String road = "";
-            String nps = "";
-            int ei = -1;
-            int tei;
-            while (rs.next()) {
-                tei = rs.getInt("patientid");
-                if (tei != ei) {
-                    
-                    if (road.length() != 0) {
-                        road = road.substring(0, road.length() - 2);
-                        rs2 = stmt2.executeQuery("select * from pattern where road='" + road + "'");
-                        if (rs2.next()) {
-                            int cnt = rs2.getInt("count") + 1;
-                            nps = rs2.getString("ps") + "," + ei;
-                            stmt2.executeUpdate("update pattern set count=" + cnt + ", ps='" + nps + "' where road='" + road + "'");
-                        } else {
-                            stmt2.execute("insert into pattern values('" + road + "',1,'" + ei + "')");
-                        }
-                    }
-                    ei = tei;
-                    road = "";
-                }
-                road += rs.getString(minedColon).toLowerCase().trim() + "->";
-            }
-            
-            rs = stmt.executeQuery("select * from pattern order by count desc");
-            int idx = 0;
-            while (rs.next()) {
-                 System.out.println("Pattern " + idx + ";" + rs.getString("road") + ";" + rs.getInt("count")
-                        + "\n\t\tEvents:" + rs.getString("ps"));
-                idx++;
-            }
-
+            */
+			commonService.addPatterns();
+           
 		 return ResponseEntity.ok(true);
 	 }
 	

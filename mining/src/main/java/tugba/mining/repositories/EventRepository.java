@@ -19,7 +19,7 @@ public interface EventRepository extends GraphRepository<Event> {
 	List<Event> findByPatientPatientIdAndActivityAndStartDate(Double patientId, String activity, Date startDate);
 
 	//List<Event> findByPatientIdAndActivityAndStartDate(Double patientId, String activity, Date startDate);
+	
+	List<Event> findAllByOrderByPatientPatientIdAscStartDateAscEventIdAsc();
 
-	@Query(value = "MATCH (event:Event) RETURN event;")
-    Stream<Event> getAllEvents();
 }
