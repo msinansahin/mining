@@ -111,6 +111,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		doctorRepository.deleteAll();
 		eventRepository.deleteAll();
 		surgeryRepository.deleteAll();
+		patternRepository.deleteAll();
 	}
 
 	@Override
