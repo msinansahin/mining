@@ -10,6 +10,11 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 
+/**
+ * Doktoc class is used ....
+ * @author tuba
+ *
+ */
 //@Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
