@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mining</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./lib/bootstrap-table.css">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+
+  <script src="./lib/bootstrap-table.js"></script>
+  <script src="./lib/go.js"></script>
+  <script src="./mining.js"></script>
+  <script src="./diagram.js"></script>
+  
+  <style>
+    /* Remove the navbar's default margin-bottom and rounded borders */ 
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+    
+    /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+    .row.content {height: 450px}
+    
+    /* Set gray background color and 100% height */
+    .sidenav {
+      padding-top: 0px;
+      background-color: #ffffff;
+      height: 100%;
+	  text-align: left;
+    }
+    
+    /* Set black background color, white text and some padding */
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+    }
+    
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height:auto;} 
+    }
+	
+	.key {font-weight: bold;}
+  </style>
+<script id="code">
+
+	function init() {
+		nodeDataArray = [
+			{"oid":-1,"text": "", "category": "start"},
+			{"oid":1, "text":"Admision to Hospital", "sayi": "1163"},
+			{"oid":2, "text":"Change Service", "sayi": "203"},
+			{"oid":3, "text":"Change Department", "sayi": "56"},
+			{"oid":4, "text":"Surgery Started", "sayi": "1192"},
+			{"oid":5, "text":"Transfer to Intensive Care Unit", "sayi": "81"},
+			{"oid":6, "text":"Surgery Finished", "sayi": "1192"},
+			{"oid":7, "text":"Ex", "sayi": "18"},
+			{"oid":8, "text":"Transfer to a service", "sayi": "1168"},
+			{"oid":9, "text":"Discharged", "sayi": "1163"},
+			{"oid":-2,"text":"", "category": "end"}];
+
+		linkDataArray = [
+			{"from":-1, "to": 1, "text": 1101},
+			{"from": 1, "to": 2, "text": 112},
+			{"from": 1, "to": 3, "text": 22},
+			{"from": 1, "to": 4, "text": 985},
+			{"from": 2, "to": 4, "text": 96},
+			{"from": 3, "to": 4, "text": 34},
+			{"from": 4, "to": 5, "text": 46},
+			{"from": 4, "to": 6, "text": 1087},
+			{"from": 5, "to": 6, "text": 42},
+			{"from": 6, "to": 7, "text": 4},	
+			{"from": 7, "to": 8, "text": 4},	
+			{"from": 6, "to": 8, "text": 1059},
+			{"from": 8, "to": 9, "text": 1155},
+			{"from": 9, "to": -2, "text": 1122},
+			{"from": 9, "to": 1, "text": 25}];
+		
+		var data = new Data(nodeDataArray, linkDataArray);
+		data.prepare();
+		var diagram = new Diagram(data);		
+	}
+
+	function responseHanlder(res) {
+		var data = [];
+
+		for ( var key in res) {
+			data.push({
+				key : key,
+				value : res[key]
+			});
+		}
+		return data;
+	}
+	
+	var obj = {
+		"description" : "An extended Bootstrap table with radio, checkbox, sort, pagination, and other added features. (supports twitter bootstrap v2 and v3) ",
+		"key1" : "value1",
+		"key2" : "value2",
+		"key3" : "value3"
+	};
+
+	$(function() {
+		$('#properties').bootstrapTable({
+			data : responseHanlder(obj)
+		});
+	});
+</script>
+</head>
+<body onload="init()">
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+      <a class="navbar-brand" href="#">Mining</a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Home</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+  
+<div class="container-fluid text-center">    
+  <div class="row content">
+    <div class="col-sm-9 text-left"> 
+      <h3>Diyagram</h3>
+		<div id="sample">
+		  <!-- The DIV for the Diagram needs an explicit size or else we won't see anything.
+			   This also adds a border to help see the edges of the viewport. -->
+			   <table>
+				<tr><div id="myDiagramDiv" style="border: solid 1px black; width:100%; height:600px;"></div></tr>
+				<tr></tr>
+			   </table> 
+		</div>
+	  
+    </div>
+    <div class="col-sm-3 sidenav">
+	
+		<h3>Özellikler</h3>
+		<table id="properties">
+			<thead>
+			<tr>
+				<th data-field="key" class="key">Key</th>
+				<th data-field="value">Value</th>
+			</tr>
+			</thead>
+		</table>
+    </div>
+  </div>
+  
+</div>
+
+
+</body>
+</html>
