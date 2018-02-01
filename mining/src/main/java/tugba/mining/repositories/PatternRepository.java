@@ -10,5 +10,5 @@ import tugba.mining.domain.Pattern;
 
 @Repository
 public interface PatternRepository extends GraphRepository<Pattern> {
-	List <Pattern> findByRoad (String road);
+	List <Pattern> findByTrace (String trace);
 }

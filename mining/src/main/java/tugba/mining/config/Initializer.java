@@ -16,8 +16,6 @@ import tugba.mining.services.CommonService;
 @Component
 public class Initializer {
 
-	@Autowired
-	CommonService commonService;
 	
 	@PostConstruct
 	public void init() {
