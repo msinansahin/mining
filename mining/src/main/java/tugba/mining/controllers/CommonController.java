@@ -9,9 +9,13 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -19,6 +23,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -185,9 +190,54 @@ public class CommonController {
 	
 	@Autowired
 	EventRepository er;
-	
+	class EventComp implements Comparator<Event>{
+		 
+	    @Override
+	    public int compare(Event e1, Event e2) {
+	        return e1.getEventId().compareTo(e2.getEventId());
+	    }
+	}
 	@GetMapping("/test")
 	public ResponseEntity<?> test(Double patientId, String activity, Date startDate) {
-		return ResponseEntity.ok(er.findByPatientPatientIdAndActivityAndStartDate(patientId, activity, startDate));
+		
+		final Comparator<Event> START_DATE_ORDER = new Comparator<Event>() {
+				public int compare(Event e1, Event e2) {
+				return e1.getStartDate().compareTo(e2.getStartDate());
+			}
+		};
+		final Comparator<Event> EVENT_ID_ORDER = new Comparator<Event>() {
+			public int compare(Event e1, Event e2) {
+			return e1.getEventId().compareTo(e2.getEventId());
+		}
+		};
+	List <Event> events = er.findByPatientPatientId(1040);
+		Collections.sort(events, START_DATE_ORDER);
+		
+		System.out.println(events);
+		Iterable <Event> es = events;
+		es.forEach(p->System.out.println(p));
+		
+		Event event = Collections.min(events, EVENT_ID_ORDER);
+	    Integer eventId = event.getEventId();
+	    System.out.println(eventId);
+	    Integer i=0;
+	   Iterator<Event> it  = events.iterator();
+	   while (it.hasNext()){
+		   Event e = (Event) it.next();
+		   e.setEventId(eventId +i );
+		   i++;
+	   }
+	   
+	 	es.forEach(p->System.out.println(p));
+	 	er.save(es);
+		return ResponseEntity.ok(true);
+	}
+	
+	@GetMapping("/testMap")
+	public ResponseEntity<?> testMap() {
+		Map<String, String> map = new HashMap();
+		map.put("Accsad", "123");
+		map.put("key2", "125");
+		return ResponseEntity.ok(map);
 	}
 }

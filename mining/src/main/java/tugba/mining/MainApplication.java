@@ -5,11 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 
 @SpringBootApplication
 @EnableNeo4jRepositories("tugba.mining.repositories")
 @EntityScan("tugba.mining.domain")
+@ComponentScan("tugba.mining")
 public class MainApplication extends SpringBootServletInitializer {
 
 	@Override

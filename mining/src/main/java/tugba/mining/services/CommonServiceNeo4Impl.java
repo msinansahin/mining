@@ -4,10 +4,13 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import tugba.mining.domain.Activity;
 import tugba.mining.domain.BaseEntity;
@@ -133,11 +136,13 @@ public class CommonServiceNeo4Impl implements CommonService {
 		if ("E".equals(row.getServisDegisiklik())) // null kontrolü yok, başa al karşılaştıracağın değeri
 		{
 			Doctor doctor2 = addDoctor(row.getDoctor2());
+			
+			String activity = "";
 			if (row.getService2().contains("Yoğun Bakı"))
-				row.setActivityServiseCikis("Transfer to Intensive Care Unit");
+				activity = "Transfer to Intensive Care Unit";
 			else
-				row.setActivityServiseCikis("Change Service");
-			addEvent(row.getEventId(), patient, row.getActivityServiseCikis(), row.getServisDegisiklikTar(),
+				activity = "Change Service";
+			addEvent(row.getEventId(), patient, activity, row.getServisDegisiklikTar(),
 					row.getDepartment(), row.getService2(), doctor2, surgery);
 		}
 
@@ -172,6 +177,9 @@ public class CommonServiceNeo4Impl implements CommonService {
 		// taburcu
 		addEvent(row.getEventId(), patient, row.getActivityTaburcu(), row.getTaburcuDate(),
 				row.getDepartment(), row.getService(), doctor, surgery);
+		
+		//update events by start data
+		updateEventsByStartDate();
 	}
 
 	private Surgery addSurgery(Integer surgeryNo, String surgeryName, String surgeryCategory) {
@@ -219,6 +227,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 					.doctor(doctor)
 					.surgery(surgery)
 					.build();
+			
 			saveOrUpdate(event);
 		}
 
@@ -252,7 +261,12 @@ public class CommonServiceNeo4Impl implements CommonService {
 	@Override
 	public void addPatterns() {
 		
-		List<Event> events = eventRepository.findAllByOrderByPatientPatientIdAscStartDateAscEventIdAsc();
+	//	eventRepository.findAll (new Sort(Sort.Direction.ASC, "<patient>"));
+		patternRepository.deleteAll();
+		List<Event> events = (List<Event>) eventRepository.findAll(new Sort ("eventId"));
+		Iterable <Event> es = eventRepository.findAll(new Sort ("eventId"));
+		es.forEach(p->System.out.println(p));
+	
 		String road = "";
         String nps = "";
         int ei = -1;
@@ -266,7 +280,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 			 if (tei != ei) {
 				 if (road.length() != 0) {
                      road = road.substring(0, road.length() - 2);
-                     List<Pattern> patterns = patternRepository.findByRoad(road);
+                     List<Pattern> patterns = patternRepository.findByTrace(road);
                      Iterator iterator2 = patterns.iterator();
                      if (iterator2.hasNext())
                      {
@@ -285,6 +299,7 @@ public class CommonServiceNeo4Impl implements CommonService {
                     			 .eventNumber(1)
                     			 .myPatients(Integer.toString(ei))
                     			 .build();
+                    	 saveOrUpdate (p);
                      }
                     	 
 				 }
@@ -294,7 +309,53 @@ public class CommonServiceNeo4Impl implements CommonService {
 			road += e.getActivity().toLowerCase().trim() + "->";
 		}
 		
+		Iterable <Pattern> patterns = patternRepository.findAll(new Sort ("patternId"));
+		patterns.forEach(p->System.out.println(p));
 		
+		
+	}
+
+	@Override
+	public void updateEventsByStartDate() {
+		
+		final Comparator<Event> START_DATE_ORDER = new Comparator<Event>() {
+			public int compare(Event e1, Event e2) {
+			return e1.getStartDate().compareTo(e2.getStartDate());
+		}
+		};
+		final Comparator<Event> EVENT_ID_ORDER = new Comparator<Event>() {
+			public int compare(Event e1, Event e2) {
+				return e1.getEventId().compareTo(e2.getEventId());
+			}
+		};
+		List <Patient> patients = (List<Patient>) patientRepository.findAll(new Sort ("patientId"));
+		Iterator it = patients.iterator();
+		
+		while (it.hasNext()){
+			Patient p = (Patient) it.next();
+			
+			// get the patient's events
+			List <Event> events = eventRepository.findByPatientPatientId(p.getPatientId());
+			
+			// sort events by start date
+			Collections.sort(events, START_DATE_ORDER);
+			
+			// get min event id
+			Integer minEventId = (Collections.min(events, EVENT_ID_ORDER)).getEventId();
+		   
+			// update event id by startdate
+			Integer i=0;
+			Iterator<Event> it2  = events.iterator();
+			while (it2.hasNext()){
+				Event e = (Event) it2.next();
+				e.setEventId(minEventId +i );
+				i++;
+			}
+			eventRepository.save(events);
+		  
+		}
+		
+	
 	}
 }
 

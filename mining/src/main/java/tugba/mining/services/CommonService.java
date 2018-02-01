@@ -24,6 +24,9 @@ public interface CommonService {
 	void addRowContext(RowContext row);
 
 	void addPatterns();
+	
+	// update events by start date for each patient and updates in neo4j
+	void updateEventsByStartDate();
 
 
 
