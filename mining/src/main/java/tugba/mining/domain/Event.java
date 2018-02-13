@@ -26,11 +26,9 @@ public class Event extends BaseEntity {
 	//@ManyToOne
 	@Relationship(type = "PATIENT", direction = Relationship.UNDIRECTED)
 	private Patient patient;
-	/*//@ManyToOne
+	//@ManyToOne
 	@Relationship(type = "ACTIVITY", direction = Relationship.UNDIRECTED)
-	private Activity activity;*/
-	
-	private String activity;
+	private Activity activity;
 	private Date startDate;
 	private Date finishDate;
 	private String department;

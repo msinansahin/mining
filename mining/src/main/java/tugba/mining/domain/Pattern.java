@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class Pattern extends BaseEntity {
 	private Integer patternId;
 	private String trace;
-	private Integer eventNumber;
+	private Integer patientNumber;
 	private String myPatients;
 
 }
