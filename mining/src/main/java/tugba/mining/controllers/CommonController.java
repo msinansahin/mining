@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -32,8 +33,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import tugba.mining.domain.Activity;
 import tugba.mining.domain.Event;
+import tugba.mining.domain.Path;
+import tugba.mining.domain.Pattern;
 import tugba.mining.dto.ProcessMap;
+import tugba.mining.repositories.ActivityRepository;
 import tugba.mining.repositories.EventRepository;
+import tugba.mining.repositories.PatternRepository;
 import tugba.mining.services.CommonService;
 import tugba.mining.util.RowContext;
 
@@ -45,8 +50,11 @@ public class CommonController {
 
 	@GetMapping("/process-map")
 	public ResponseEntity<ProcessMap> getProcessMap() {
-		ProcessMap map = new ProcessMap();
+		commonService.processMap();
+		ProcessMap map = ProcessMap.builder().build();
 		map.setEvents(commonService.listEvent());
+		map.setActivities(commonService.listActivity());
+		map.setPaths(commonService.listPath());
 		return ResponseEntity.ok(map);	
 	}
 	@PostMapping("/activity")
@@ -62,6 +70,7 @@ public class CommonController {
 	@GetMapping("/vt-hazirla")
 	public ResponseEntity<?> vtHazirla() {		
 		commonService.deleteAll();	
+		commonService.addActivity("Start");
 		try {
 			FileInputStream excelFile = new FileInputStream(new File("deneme2.xls"));
 			HSSFWorkbook workbook = new HSSFWorkbook(excelFile);
@@ -77,6 +86,8 @@ public class CommonController {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		
 		return ResponseEntity.ok(true);
 		
 	}
@@ -190,49 +201,44 @@ public class CommonController {
 	
 	@Autowired
 	EventRepository er;
-	class EventComp implements Comparator<Event>{
-		 
-	    @Override
-	    public int compare(Event e1, Event e2) {
-	        return e1.getEventId().compareTo(e2.getEventId());
-	    }
-	}
+	@Autowired
+	ActivityRepository ar;
+	@Autowired
+	PatternRepository pr;
 	@GetMapping("/test")
 	public ResponseEntity<?> test(Double patientId, String activity, Date startDate) {
 		
-		final Comparator<Event> START_DATE_ORDER = new Comparator<Event>() {
-				public int compare(Event e1, Event e2) {
-				return e1.getStartDate().compareTo(e2.getStartDate());
+		
+		ProcessMap pm = ProcessMap.builder()
+				.activities((List<Activity>) ar.findAll())
+				.paths(generatePaths())
+				.events ((List<Event>) er.findAll( new Sort ("eventId"))).build();
+		
+		Iterator it = (pr.findAll(new Sort ("patternId"))).iterator();
+		while (it.hasNext())
+		{
+			Pattern p = (Pattern)it.next();
+			String trace = p.getTrace();
+			StringTokenizer str = new StringTokenizer ( p.getTrace(), "->");
+			System.out.println("Pattern:" + p.getPatternId() +" ");
+			while (str.hasMoreElements())
+			{
+				System.out.println();
+				System.out.print(str.nextToken());
+				System.out.println();
 			}
-		};
-		final Comparator<Event> EVENT_ID_ORDER = new Comparator<Event>() {
-			public int compare(Event e1, Event e2) {
-			return e1.getEventId().compareTo(e2.getEventId());
+			
+			
+			
 		}
-		};
-	List <Event> events = er.findByPatientPatientId(1040);
-		Collections.sort(events, START_DATE_ORDER);
-		
-		System.out.println(events);
-		Iterable <Event> es = events;
-		es.forEach(p->System.out.println(p));
-		
-		Event event = Collections.min(events, EVENT_ID_ORDER);
-	    Integer eventId = event.getEventId();
-	    System.out.println(eventId);
-	    Integer i=0;
-	   Iterator<Event> it  = events.iterator();
-	   while (it.hasNext()){
-		   Event e = (Event) it.next();
-		   e.setEventId(eventId +i );
-		   i++;
-	   }
-	   
-	 	es.forEach(p->System.out.println(p));
-	 	er.save(es);
 		return ResponseEntity.ok(true);
 	}
 	
+	private List<Path> generatePaths() {
+		
+		
+		return null;
+	}
 	@GetMapping("/testMap")
 	public ResponseEntity<?> testMap() {
 		Map<String, String> map = new HashMap();

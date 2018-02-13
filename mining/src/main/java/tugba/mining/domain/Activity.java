@@ -1,10 +1,12 @@
 package tugba.mining.domain;
 
 
+import java.util.List;
+
 import org.neo4j.ogm.annotation.NodeEntity;
 
-import groovy.transform.builder.Builder;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -19,7 +21,12 @@ import lombok.NoArgsConstructor;
 public class Activity extends BaseEntity {
 
 	private String activityName;
+	private Integer activityId;
+	private Integer eventNumber;
+	private Integer patientNumber;
 	
+	private List<Patient> patients;
+	private List<Event> events;
 	// diğerlerini ekle
 	
 	

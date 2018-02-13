@@ -16,11 +16,12 @@ import tugba.mining.domain.Event;
 @Repository
 public interface EventRepository extends GraphRepository<Event> {
 	
-	List<Event> findByActivityAndStartDate(String activity, Date startDate);
 
-	List<Event> findByPatientPatientIdAndActivityAndStartDate(Double patientId, String activity, Date startDate);
+	List<Event> findByPatientPatientIdAndActivityActivityNameAndStartDate(Double patientId, String activity, Date startDate);
 
 	List<Event> findByPatientPatientId(double d);
+	
+	
 
 	//List<Event> findByPatientIdAndActivityAndStartDate(Double patientId, String activity, Date startDate);
 	

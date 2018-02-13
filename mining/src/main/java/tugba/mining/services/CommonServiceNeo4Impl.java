@@ -12,16 +12,21 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import com.google.common.collect.Lists;
+
 import tugba.mining.domain.Activity;
 import tugba.mining.domain.BaseEntity;
 import tugba.mining.domain.Doctor;
 import tugba.mining.domain.Event;
+import tugba.mining.domain.Path;
 import tugba.mining.domain.Patient;
 import tugba.mining.domain.Pattern;
 import tugba.mining.domain.Surgery;
 import tugba.mining.repositories.ActivityRepository;
 import tugba.mining.repositories.DoctorRepository;
 import tugba.mining.repositories.EventRepository;
+import tugba.mining.repositories.PathRepository;
 import tugba.mining.repositories.PatientRepository;
 import tugba.mining.repositories.SurgeryRepository;
 import tugba.mining.repositories.PatternRepository;
@@ -32,7 +37,9 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	public static Integer eventId = 0;
 	public static Integer patternId = 0;
-	
+	public static Integer pathId = 0;
+	public static Integer activityId = 0;
+
 	@Autowired
 	EventRepository eventRepository;
 
@@ -50,14 +57,28 @@ public class CommonServiceNeo4Impl implements CommonService {
 	
 	@Autowired
 	PatternRepository patternRepository;
+	
+	@Autowired
+	PathRepository pathRepository;
 
 	@Override
 	public List<Event> listEvent() {
 		List<Event> result = new ArrayList<>();
-		eventRepository.findAll().forEach(event -> result.add(event));
+		eventRepository.findAll(new Sort ("eventId")).forEach(event -> result.add(event));
 		return result;
 	}
-
+	@Override
+	public List<Activity> listActivity() {
+		List<Activity> result = new ArrayList<>();
+		activityRepository.findAll(new Sort ("activityId")).forEach(activity -> result.add(activity));
+		return result;
+	}
+	@Override
+	public List<Path> listPath() {
+		List<Path> result = new ArrayList<>();
+		pathRepository.findAll(new Sort ("pathId")).forEach(path -> result.add(path));
+		return result;
+	}
 	@Override
 	public <T> T getById(Class<T> clazz, Long id) {
 		if (Event.class.equals(clazz)) {
@@ -72,9 +93,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 			return (T) doctorRepository.findOne(id);
 		}
 		return null;
-
 	}
-
 	@Override
 	public <T> boolean exists(Class<T> clazz, Long id) {
 		if (Event.class.equals(clazz)) {
@@ -106,6 +125,10 @@ public class CommonServiceNeo4Impl implements CommonService {
 			doctorRepository.save((Doctor) entity);
 		else if (entity instanceof Pattern)
 			patternRepository.save((Pattern) entity);
+		else if (entity instanceof Activity)
+			activityRepository.save((Activity) entity);
+		else if (entity instanceof Path)
+			pathRepository.save((Path) entity);
 	}
 
 	@Override
@@ -115,6 +138,11 @@ public class CommonServiceNeo4Impl implements CommonService {
 		eventRepository.deleteAll();
 		surgeryRepository.deleteAll();
 		patternRepository.deleteAll();
+		activityRepository.deleteAll();
+		patternRepository.deleteAll();
+		patternId = 0;
+		eventId = 0; 
+		activityId = 0;
 	}
 
 	@Override
@@ -180,6 +208,8 @@ public class CommonServiceNeo4Impl implements CommonService {
 		
 		//update events by start data
 		updateEventsByStartDate();
+				
+				
 	}
 
 	private Surgery addSurgery(Integer surgeryNo, String surgeryName, String surgeryCategory) {
@@ -213,13 +243,14 @@ public class CommonServiceNeo4Impl implements CommonService {
 	private void addEvent(Integer eventId, Patient patient, String activity, Date activityDate, String department,
 			String service, Doctor doctor, Surgery surgery) {
 
-		if ( eventRepository.findByPatientPatientIdAndActivityAndStartDate(patient.getPatientId(), activity, activityDate).isEmpty()) {
+		if ( eventRepository.findByPatientPatientIdAndActivityActivityNameAndStartDate(patient.getPatientId(), activity, activityDate).isEmpty()) {
 
+			Activity a = addActivity(activity);
 			Event event = Event.builder()
 					.eventId(addEventId())
 					.patient(patient)
 					//.patientId(patient.getPatientId())
-					.activity(activity)
+					.activity(a)
 					.startDate(activityDate)
 					.finishDate(activityDate)
 					.department(department)
@@ -233,6 +264,24 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	}
 
+	public Activity addActivity(String activityName) {
+		Activity activity = null;
+		if (activityRepository.findByActivityName(activityName).isEmpty()) {
+			activity = Activity.builder()
+					.activityId(addActivityId())
+					.activityName(activityName)
+					.events(Lists.newArrayList())
+					.eventNumber(0)
+					.patientNumber(0)
+					.patients(Lists.newArrayList())
+					.build();
+			saveOrUpdate(activity);
+		} else
+			activity = activityRepository.findByActivityName(activityName).get(0);
+
+		return activity;
+	}
+
 	private Integer addEventId() {
 		eventId = eventId + 1;
 		return eventId;
@@ -240,6 +289,14 @@ public class CommonServiceNeo4Impl implements CommonService {
 	private Integer addPatternId() {
 		patternId = patternId + 1;
 		return patternId;
+	}
+	private Integer addPathId() {
+		pathId = pathId + 1;
+		return pathId;
+	}
+	private Integer addActivityId() {
+		activityId = activityId + 1;
+		return activityId;
 	}
 	private Patient addPatient(Integer patienId, Integer age, String gender) {
 		Patient patient = null;
@@ -256,13 +313,10 @@ public class CommonServiceNeo4Impl implements CommonService {
 		return patient;
 	}
 
-	
-
 	@Override
 	public void addPatterns() {
 		
-	//	eventRepository.findAll (new Sort(Sort.Direction.ASC, "<patient>"));
-		patternRepository.deleteAll();
+		deletePatterns();
 		List<Event> events = (List<Event>) eventRepository.findAll(new Sort ("eventId"));
 		Iterable <Event> es = eventRepository.findAll(new Sort ("eventId"));
 		es.forEach(p->System.out.println(p));
@@ -273,30 +327,28 @@ public class CommonServiceNeo4Impl implements CommonService {
         int tei;
 		Iterator iterator = events.iterator();
 		while (iterator.hasNext())
-		{
-			 
+		{		 
 			Event e = (Event)iterator.next();
 			tei = (int) e.getPatient().getPatientId();
-			 if (tei != ei) {
+			if (tei != ei) {
+				
 				 if (road.length() != 0) {
                      road = road.substring(0, road.length() - 2);
                      List<Pattern> patterns = patternRepository.findByTrace(road);
                      Iterator iterator2 = patterns.iterator();
                      if (iterator2.hasNext())
-                     {
-                    	
+                     {      	
                     	 Pattern p = (Pattern) iterator2.next();
-                    	 p.setEventNumber(p.getEventNumber() +1);
-                    	 p.setMyPatients( p.getMyPatients() + "," +ei );
-                    	 
+                    	 p.setPatientNumber(p.getPatientNumber() + 1);
+                    	 p.setMyPatients( p.getMyPatients() + "," + ei );
                     	 saveOrUpdate(p);
                      }
-                     else {
-                    	 
+                     else {	 
+                    	 System.out.println("Saved: " +ei + " " +  road);
                     	 Pattern p = Pattern.builder()
                     			 .patternId(addPatternId ())
                     			 .trace(road)
-                    			 .eventNumber(1)
+                    			 .patientNumber(1)
                     			 .myPatients(Integer.toString(ei))
                     			 .build();
                     	 saveOrUpdate (p);
@@ -306,11 +358,124 @@ public class CommonServiceNeo4Impl implements CommonService {
 				 ei = tei;
                  road = "";
 			}
-			road += e.getActivity().toLowerCase().trim() + "->";
+			
+			String starting ="";
+			
+			if (!road.isEmpty())
+			{
+				String pathroad = road.substring(0, road.length() - 2);
+				if (pathroad.contains("->"))
+					starting = pathroad.substring(pathroad.lastIndexOf("->"), pathroad.length() );
+				else
+					starting = pathroad;
+					
+			}
+			else{
+				starting = "Start";
+			}
+			// adding a path
+			addPath (e, starting.replace("->", ""), e.getActivity().getActivityName().toLowerCase().trim().replace("->", ""));
+			road += e.getActivity().getActivityName().toLowerCase().trim() + "->";
+			
 		}
+	}
+
+	private void addPath(Event e, String startingActivity, String endingActivity) {
+		Path path = null;
+		List <Event> events = Lists.newArrayList();
+		List <Patient> patients = Lists.newArrayList();
+		addActivityToEvent (startingActivity, e);
+		addActivityToEvent (endingActivity, e);
 		
-		Iterable <Pattern> patterns = patternRepository.findAll(new Sort ("patternId"));
-		patterns.forEach(p->System.out.println(p));
+		
+		if (pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).isEmpty()) {
+			events.add(e);
+			patients.add(patientRepository.findByPatientId(e.getPatient().getPatientId()).get(0) );
+					
+			path = Path.builder()
+					.pathId(addPathId())
+					.startingActivity(startingActivity)
+					.endingActivity(endingActivity)
+					.events(events)
+					.patients(patients)
+					.eventNumber(1)
+					.patientNumber(1).build();			
+			saveOrUpdate(path);
+		} 
+		else
+		{
+			path = pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).get(0);
+			System.out.println( "path:" + path.getStartingActivity());
+			events.addAll(path.getEvents());
+			events.add(e);
+			
+			if (!existPatient (path.getPatients(), e.getPatient().getPatientId()))
+				path.setPatientNumber(path.getPatientNumber() + 1 );
+			
+			path.setEvents(events);
+			path.setEventNumber(events.size());
+			saveOrUpdate(path);
+		}       
+		
+	}
+
+	private boolean existPatient(List<Patient> patients, double patientId) {
+		
+		boolean exist = false;
+		if (!patients.isEmpty())
+		{
+			Iterator it = patients.iterator();
+			while (it.hasNext())
+			{
+				Patient p = (Patient) it.next();
+				if ( p.getPatientId() == patientId)
+					exist = true ;
+			}
+		}
+		return exist;
+	}
+	private boolean existEvent(List<Event> events, Integer eventId) {
+		boolean exist = false;
+		if (!events.isEmpty())
+		{
+			Iterator it = events.iterator();
+			while (it.hasNext())
+			{
+				Event e = (Event) it.next();
+				if ( e.getEventId() == eventId)
+					exist = true ;
+			}
+		}
+		return exist;
+	}
+	private void addActivityToEvent(String activityName, Event e) {
+		Activity activity;
+		List <Event> events = new ArrayList();
+		if (!activityRepository.findByActivityName(activityName).isEmpty())
+		{
+			activity = activityRepository.findByActivityName(activityName).get(0);
+			System.out.println(activityName + ":" +activity.getActivityName() );
+			if (activity.getEventNumber() == 0)
+			{
+				events.add(e);
+				activity.setEvents(events);
+				activity.setEventNumber(activity.getEventNumber() +1);
+				saveOrUpdate(activity);
+			}
+			else if (!existEvent (activity.getEvents(), e.getEventId()))
+			{
+				events.addAll(activity.getEvents());
+				events.add(e);
+				
+				activity.setEvents(events);
+				activity.setEventNumber(activity.getEventNumber() + 1);
+				
+				saveOrUpdate(activity);
+				
+			}
+	
+		}
+			
 		
 		
 	}
@@ -354,8 +519,25 @@ public class CommonServiceNeo4Impl implements CommonService {
 			eventRepository.save(events);
 		  
 		}
-		
+		List<Event> events = (List<Event>) eventRepository.findAll(new Sort ("eventId"));
+		Iterable <Event> es = eventRepository.findAll(new Sort ("eventId"));
+		es.forEach(p->System.out.println(p));
 	
+	
+	}
+
+	@Override
+	public void deletePatterns() {
+		patternRepository.deleteAll();
+		pathRepository.deleteAll();
+		patternId = 0;
+		pathId = 0;
+	}
+
+	@Override
+	public void processMap() {
+		
+		
 	}
 }
 
