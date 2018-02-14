@@ -54,7 +54,22 @@
   </style>
 <script id="code">
 
+
+	var BASE = 'http://localhost:8080';
+	var URL_PROCESS_MAP = BASE + '/process-map';
+	var diagram;
+	
 	function init() {
+		
+		$.get(URL_PROCESS_MAP, function(data) {
+			console.log(data);
+			var processMap = new ProcessMap(data);
+			var data = processMap.toData();
+			data.prepare();
+			diagram = new Diagram(data);
+		});
+		
+		/* örnek için burası açılabilir
 		nodeDataArray = [
 			{"oid":-1,"text": "", "category": "start"},
 			{"oid":1, "text":"Admision to Hospital", "sayi": "1163", "props":[{key:"Absolute Freg", value: 1121},{key: "Case Freq", value: 343}]},
@@ -87,7 +102,8 @@
 		
 		var data = new Data(nodeDataArray, linkDataArray);
 		data.prepare();
-		var diagram = new Diagram(data);		
+		var diagram = new Diagram(data);	
+		*/
 	}
 
 	function responseHanlder(res) {
