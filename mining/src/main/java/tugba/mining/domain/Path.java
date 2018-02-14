@@ -33,8 +33,6 @@ public class Path extends BaseEntity {
 	private double totalDuration;
 	private double meanDuration;
 	
-	private Integer eventNumber = 0;
-	private Integer patientNumber = 0;
 	
 	
 	

@@ -18,6 +18,5 @@ public class ProcessMap implements Serializable {
 	private List<Activity> activities;
 	private List<Path> paths;
 	private List<Event> events;
-	
 
 }

@@ -271,8 +271,6 @@ public class CommonServiceNeo4Impl implements CommonService {
 					.activityId(addActivityId())
 					.activityName(activityName)
 					.events(Lists.newArrayList())
-					.eventNumber(0)
-					.patientNumber(0)
 					.patients(Lists.newArrayList())
 					.build();
 			saveOrUpdate(activity);
@@ -380,17 +378,17 @@ public class CommonServiceNeo4Impl implements CommonService {
 		}
 	}
 
-	private void addPath(Event e, String startingActivity, String endingActivity) {
+	private void addPath(Event event, String startingActivity, String endingActivity) {
 		Path path = null;
 		List <Event> events = Lists.newArrayList();
 		List <Patient> patients = Lists.newArrayList();
-		addActivityToEvent (startingActivity, e);
-		addActivityToEvent (endingActivity, e);
+		addActivityToEvent (startingActivity, event);
+		addActivityToEvent (endingActivity, event);
 		
 		
 		if (pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).isEmpty()) {
-			events.add(e);
-			patients.add(patientRepository.findByPatientId(e.getPatient().getPatientId()).get(0) );
+			events.add(event);
+			patients.add(patientRepository.findByPatientId(event.getPatient().getPatientId()).get(0) );
 					
 			path = Path.builder()
 					.pathId(addPathId())
@@ -398,8 +396,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 					.endingActivity(endingActivity)
 					.events(events)
 					.patients(patients)
-					.eventNumber(1)
-					.patientNumber(1).build();			
+					.build();			
 			saveOrUpdate(path);
 		} 
 		else
@@ -407,13 +404,17 @@ public class CommonServiceNeo4Impl implements CommonService {
 			path = pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).get(0);
 			System.out.println( "path:" + path.getStartingActivity());
 			events.addAll(path.getEvents());
-			events.add(e);
+			events.add(event);
 			
-			if (!existPatient (path.getPatients(), e.getPatient().getPatientId()))
-				path.setPatientNumber(path.getPatientNumber() + 1 );
+			if (!existPatient (path.getPatients(), event.getPatient().getPatientId()))
+			{
+				//path.setPatientNumber(path.getPatientNumber() + 1 );
+				patients.addAll(path.getPatients());
+				patients.add(event.getPatient());
+				path.setPatients(patients);
+			}
 			
 			path.setEvents(events);
-			path.setEventNumber(events.size());
 			saveOrUpdate(path);
 		}       
 		
@@ -450,16 +451,21 @@ public class CommonServiceNeo4Impl implements CommonService {
 	}
 	private void addActivityToEvent(String activityName, Event e) {
 		Activity activity;
-		List <Event> events = new ArrayList();
+		List <Event> events = Lists.newArrayList();
+		List <Patient> patients = Lists.newArrayList();
+		
 		if (!activityRepository.findByActivityName(activityName).isEmpty())
 		{
 			activity = activityRepository.findByActivityName(activityName).get(0);
-			System.out.println(activityName + ":" +activity.getActivityName() );
-			if (activity.getEventNumber() == 0)
+			System.out.println(activityName + ":" +activity.getEvents()  );
+			
+			if (activity.getEvents().isEmpty())
 			{
 				events.add(e);
+				patients.add(e.getPatient());
+				
 				activity.setEvents(events);
-				activity.setEventNumber(activity.getEventNumber() +1);
+				activity.setPatients(patients);
 				saveOrUpdate(activity);
 			}
 			else if (!existEvent (activity.getEvents(), e.getEventId()))
@@ -467,9 +473,13 @@ public class CommonServiceNeo4Impl implements CommonService {
 				events.addAll(activity.getEvents());
 				events.add(e);
 				
+				if (!existPatient (activity.getPatients(), e.getPatient().getPatientId()))
+				{
+					patients.addAll(activity.getPatients());
+					patients.add(e.getPatient());
+					activity.setPatients(patients);
+				}
 				activity.setEvents(events);
-				activity.setEventNumber(activity.getEventNumber() + 1);
-				
 				saveOrUpdate(activity);
 				
 			}
