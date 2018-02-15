@@ -12,6 +12,6 @@ import tugba.mining.domain.Patient;
 @Builder
 public class ActivityNode {
 	Activity activity;
-	private List<Integer> patients;
+	private List<Patient> patients;
 	private List<Event> events;
 }

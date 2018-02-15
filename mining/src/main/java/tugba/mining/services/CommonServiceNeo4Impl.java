@@ -508,13 +508,13 @@ public class CommonServiceNeo4Impl implements CommonService {
 		while (it.hasNext())
 		{
 			Activity a = (Activity) it.next();
-			ActivityNode activityNode = ActivityNode.builder()
-					.activity(a)
-					.events(eventRepository.findByActivityActivityId(a.getActivityId()))
-					
-					.build();
+			a.setPatients(patientRepository.getPatients(a.getActivityId()));
+			a.setEvents(eventRepository.findByActivityActivityId(a.getActivityId()));
+			activityRepository.save(a);
 		
 		}
+		
+		
 	}
 }
 

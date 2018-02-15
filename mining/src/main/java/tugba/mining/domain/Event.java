@@ -34,8 +34,8 @@ public class Event extends BaseEntity {
 	private String department;
 	private String service;
 	//@ManyToOne
-		@Relationship(type = "DOCTOR", direction = Relationship.UNDIRECTED)
-		private Doctor doctor;
+	@Relationship(type = "DOCTOR", direction = Relationship.UNDIRECTED)
+	private Doctor doctor;
 	
 	//@ManyToOne
 	@Relationship(type = "SURGERY", direction = Relationship.UNDIRECTED)
