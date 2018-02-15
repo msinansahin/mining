@@ -22,11 +22,6 @@ public class Activity extends BaseEntity {
 
 	private String activityName;
 	private Integer activityId;
-	private Integer eventNumber;
-	private Integer patientNumber;
-	
-	private List<Patient> patients;
-	private List<Event> events;
 	// diğerlerini ekle
 	
 	

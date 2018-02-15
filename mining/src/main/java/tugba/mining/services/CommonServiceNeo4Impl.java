@@ -23,6 +23,7 @@ import tugba.mining.domain.Path;
 import tugba.mining.domain.Patient;
 import tugba.mining.domain.Pattern;
 import tugba.mining.domain.Surgery;
+import tugba.mining.dto.ActivityNode;
 import tugba.mining.repositories.ActivityRepository;
 import tugba.mining.repositories.DoctorRepository;
 import tugba.mining.repositories.EventRepository;
@@ -270,10 +271,6 @@ public class CommonServiceNeo4Impl implements CommonService {
 			activity = Activity.builder()
 					.activityId(addActivityId())
 					.activityName(activityName)
-					.events(Lists.newArrayList())
-					.eventNumber(0)
-					.patientNumber(0)
-					.patients(Lists.newArrayList())
 					.build();
 			saveOrUpdate(activity);
 		} else
@@ -380,17 +377,14 @@ public class CommonServiceNeo4Impl implements CommonService {
 		}
 	}
 
-	private void addPath(Event e, String startingActivity, String endingActivity) {
+	private void addPath(Event event, String startingActivity, String endingActivity) {
 		Path path = null;
 		List <Event> events = Lists.newArrayList();
 		List <Patient> patients = Lists.newArrayList();
-		addActivityToEvent (startingActivity, e);
-		addActivityToEvent (endingActivity, e);
-		
-		
+
 		if (pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).isEmpty()) {
-			events.add(e);
-			patients.add(patientRepository.findByPatientId(e.getPatient().getPatientId()).get(0) );
+			events.add(event);
+			patients.add(patientRepository.findByPatientId(event.getPatient().getPatientId()).get(0) );
 					
 			path = Path.builder()
 					.pathId(addPathId())
@@ -398,8 +392,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 					.endingActivity(endingActivity)
 					.events(events)
 					.patients(patients)
-					.eventNumber(1)
-					.patientNumber(1).build();			
+					.build();			
 			saveOrUpdate(path);
 		} 
 		else
@@ -407,13 +400,17 @@ public class CommonServiceNeo4Impl implements CommonService {
 			path = pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).get(0);
 			System.out.println( "path:" + path.getStartingActivity());
 			events.addAll(path.getEvents());
-			events.add(e);
+			events.add(event);
 			
-			if (!existPatient (path.getPatients(), e.getPatient().getPatientId()))
-				path.setPatientNumber(path.getPatientNumber() + 1 );
+			if (!existPatient (path.getPatients(), event.getPatient().getPatientId()))
+			{
+				//path.setPatientNumber(path.getPatientNumber() + 1 );
+				patients.addAll(path.getPatients());
+				patients.add(event.getPatient());
+				path.setPatients(patients);
+			}
 			
 			path.setEvents(events);
-			path.setEventNumber(events.size());
 			saveOrUpdate(path);
 		}       
 		
@@ -448,37 +445,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		}
 		return exist;
 	}
-	private void addActivityToEvent(String activityName, Event e) {
-		Activity activity;
-		List <Event> events = new ArrayList();
-		if (!activityRepository.findByActivityName(activityName).isEmpty())
-		{
-			activity = activityRepository.findByActivityName(activityName).get(0);
-			System.out.println(activityName + ":" +activity.getActivityName() );
-			if (activity.getEventNumber() == 0)
-			{
-				events.add(e);
-				activity.setEvents(events);
-				activity.setEventNumber(activity.getEventNumber() +1);
-				saveOrUpdate(activity);
-			}
-			else if (!existEvent (activity.getEvents(), e.getEventId()))
-			{
-				events.addAll(activity.getEvents());
-				events.add(e);
-				
-				activity.setEvents(events);
-				activity.setEventNumber(activity.getEventNumber() + 1);
-				
-				saveOrUpdate(activity);
-				
-			}
 	
-		}
-			
-		
-		
-	}
 
 	@Override
 	public void updateEventsByStartDate() {
@@ -536,8 +503,18 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	@Override
 	public void processMap() {
+		List<Activity> activities = (List<Activity>) activityRepository.findAll(new Sort ("activityId"));
+		Iterator it = activities.iterator();
+		while (it.hasNext())
+		{
+			Activity a = (Activity) it.next();
+			ActivityNode activityNode = ActivityNode.builder()
+					.activity(a)
+					.events(eventRepository.findByActivityActivityId(a.getActivityId()))
+					
+					.build();
 		
-		
+		}
 	}
 }
 

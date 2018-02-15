@@ -55,6 +55,13 @@ public class CommonController {
 		map.setEvents(commonService.listEvent());
 		map.setActivities(commonService.listActivity());
 		map.setPaths(commonService.listPath());
+		
+		Iterable activity = map.getActivities();
+		Iterable <Activity> es = map.getActivities();
+		es.forEach(p->System.out.println(es));
+	
+		
+		
 		return ResponseEntity.ok(map);	
 	}
 	@PostMapping("/activity")
@@ -70,7 +77,7 @@ public class CommonController {
 	@GetMapping("/vt-hazirla")
 	public ResponseEntity<?> vtHazirla() {		
 		commonService.deleteAll();	
-		commonService.addActivity("Start");
+		//commonService.addActivity("Start");
 		try {
 			FileInputStream excelFile = new FileInputStream(new File("deneme2.xls"));
 			HSSFWorkbook workbook = new HSSFWorkbook(excelFile);
