@@ -34,5 +34,65 @@ function Data(nodeDataArray, linkDataArray) {
 		}
     });
   }
-  
+}
+
+function ProcessMap(data) {
+	this.data = _.isString(data) ? JSON.parse(data) : data;
+	this.activities = data.activities || [];
+	this.paths = data.paths || [];
+	this.events = data.events || [];
+	
+	/**
+	 * path'leri ve activite'leri gezerek data nesnesini oluşturur
+	 */
+	this.toData = function() {
+		var nodeDataArray = [],
+			linkDataArray = [];
+		var _this = this;
+		console.log("activities length: " + this.activities.length);
+		this.activities.forEach(function(activity) {
+			nodeDataArray.push(_this.createActivity(activity));
+		});
+		
+		console.log("paths length: " + this.paths.length);
+		this.paths.forEach(function(path) {
+			linkDataArray.push(_this.createPath(path, this));
+		});
+		
+		var data = new Data(nodeDataArray, linkDataArray);
+		console.log(nodeDataArray);
+		console.log(linkDataArray);
+		return data;
+	}
+	
+	this.createActivity = function(activity) {
+		return {
+			"oid"		: activity.activityId,
+			"sayi"		: (activity.patients ? activity.patients.length : 0) + '',
+			"text"		: isStart(activity) ? "" : activity.activityName,
+			"category"	: isStart(activity) ? "start" : ""
+		};
+	}
+	
+	this.createPath = function(path) {
+		return {
+			"from"	: this.findActivityIdByName(path.startingActivity),
+			"to"	: this.findActivityIdByName(path.endingActivity), 
+			"text"	: (path.patients ? path.patients.length : 0) + '',
+		};
+	}
+	
+	this.findActivityIdByName = function (activityName) {
+		for (var i = 0; i < this.activities.length; i++) {
+			var activity = this.activities[i];
+			if (activity.activityName.toUpperCase() === activityName.toUpperCase()) {
+				return activity.activityId;
+			}
+		}
+		return 'NF';
+	}
+	
+	function isStart(activity) {
+		return activity.activityName.toLowerCase() === "start";
+	}
 }
