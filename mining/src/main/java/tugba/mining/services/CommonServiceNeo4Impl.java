@@ -23,6 +23,7 @@ import tugba.mining.domain.Path;
 import tugba.mining.domain.Patient;
 import tugba.mining.domain.Pattern;
 import tugba.mining.domain.Surgery;
+import tugba.mining.dto.ActivityNode;
 import tugba.mining.repositories.ActivityRepository;
 import tugba.mining.repositories.DoctorRepository;
 import tugba.mining.repositories.EventRepository;
@@ -270,8 +271,6 @@ public class CommonServiceNeo4Impl implements CommonService {
 			activity = Activity.builder()
 					.activityId(addActivityId())
 					.activityName(activityName)
-					.events(Lists.newArrayList())
-					.patients(Lists.newArrayList())
 					.build();
 			saveOrUpdate(activity);
 		} else
@@ -382,10 +381,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		Path path = null;
 		List <Event> events = Lists.newArrayList();
 		List <Patient> patients = Lists.newArrayList();
-		addActivityToEvent (startingActivity, event);
-		addActivityToEvent (endingActivity, event);
-		
-		
+
 		if (pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).isEmpty()) {
 			events.add(event);
 			patients.add(patientRepository.findByPatientId(event.getPatient().getPatientId()).get(0) );
@@ -449,46 +445,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		}
 		return exist;
 	}
-	private void addActivityToEvent(String activityName, Event e) {
-		Activity activity;
-		List <Event> events = Lists.newArrayList();
-		List <Patient> patients = Lists.newArrayList();
-		
-		if (!activityRepository.findByActivityName(activityName).isEmpty())
-		{
-			activity = activityRepository.findByActivityName(activityName).get(0);
-			System.out.println(activityName + ":" +activity.getEvents()  );
-			
-			if (activity.getEvents().isEmpty())
-			{
-				events.add(e);
-				patients.add(e.getPatient());
-				
-				activity.setEvents(events);
-				activity.setPatients(patients);
-				saveOrUpdate(activity);
-			}
-			else if (!existEvent (activity.getEvents(), e.getEventId()))
-			{
-				events.addAll(activity.getEvents());
-				events.add(e);
-				
-				if (!existPatient (activity.getPatients(), e.getPatient().getPatientId()))
-				{
-					patients.addAll(activity.getPatients());
-					patients.add(e.getPatient());
-					activity.setPatients(patients);
-				}
-				activity.setEvents(events);
-				saveOrUpdate(activity);
-				
-			}
 	
-		}
-			
-		
-		
-	}
 
 	@Override
 	public void updateEventsByStartDate() {
@@ -546,8 +503,18 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	@Override
 	public void processMap() {
+		List<Activity> activities = (List<Activity>) activityRepository.findAll(new Sort ("activityId"));
+		Iterator it = activities.iterator();
+		while (it.hasNext())
+		{
+			Activity a = (Activity) it.next();
+			ActivityNode activityNode = ActivityNode.builder()
+					.activity(a)
+					.events(eventRepository.findByActivityActivityId(a.getActivityId()))
+					
+					.build();
 		
-		
+		}
 	}
 }
 
