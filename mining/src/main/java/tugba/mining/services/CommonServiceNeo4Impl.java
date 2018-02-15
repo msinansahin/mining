@@ -23,7 +23,7 @@ import tugba.mining.domain.Path;
 import tugba.mining.domain.Patient;
 import tugba.mining.domain.Pattern;
 import tugba.mining.domain.Surgery;
-import tugba.mining.dto.ActivityNode;
+
 import tugba.mining.repositories.ActivityRepository;
 import tugba.mining.repositories.DoctorRepository;
 import tugba.mining.repositories.EventRepository;
