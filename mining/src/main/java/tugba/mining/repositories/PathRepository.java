@@ -14,7 +14,6 @@ import tugba.mining.domain.Path;
 public interface PathRepository extends GraphRepository<Path> {
 
 	
-	List<Path> findByStartingActivityAndEndingActivity(String startingActivity,
-			String endingActivity);
+	List<Path> findByFromAndTo(String from,	String to);
 	
 }

@@ -8,6 +8,7 @@ import lombok.Data;
 import tugba.mining.domain.Activity;
 import tugba.mining.domain.Event;
 import tugba.mining.domain.Path;
+import tugba.mining.domain.Pattern;
 
 @Data
 @Builder
@@ -18,5 +19,6 @@ public class ProcessMap implements Serializable {
 	private List<Activity> activities;
 	private List<Path> paths;
 	private List<Event> events;
+	private List<Pattern> patterns;
 
 }

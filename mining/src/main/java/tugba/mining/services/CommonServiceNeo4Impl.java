@@ -69,17 +69,25 @@ public class CommonServiceNeo4Impl implements CommonService {
 		return result;
 	}
 	@Override
+	public List<Path> listPath() {
+		List<Path> result = new ArrayList<>();
+		pathRepository.findAll(new Sort ("pathId")).forEach(p -> result.add(p));
+		return result;
+	}
+	@Override
 	public List<Activity> listActivity() {
 		List<Activity> result = new ArrayList<>();
 		activityRepository.findAll(new Sort ("activityId")).forEach(activity -> result.add(activity));
 		return result;
 	}
 	@Override
-	public List<Path> listPath() {
-		List<Path> result = new ArrayList<>();
-		pathRepository.findAll(new Sort ("pathId")).forEach(path -> result.add(path));
+	public List<Pattern> listPattern() {
+		List<Pattern> result = new ArrayList<>();
+		patternRepository.findAll(new Sort ("patternId")).forEach(pattern -> result.add(pattern));
 		return result;
 	}
+	
+	
 	@Override
 	public <T> T getById(Class<T> clazz, Long id) {
 		if (Event.class.equals(clazz)) {
@@ -209,10 +217,24 @@ public class CommonServiceNeo4Impl implements CommonService {
 		
 		//update events by start data
 		updateEventsByStartDate();
-				
+		
+		// eventcount and patientcount of activites
+		updateActivities();
 				
 	}
 
+	private void updateActivities() {
+		List <Activity> activities= (List<Activity>) activityRepository.findAll( new Sort ("activityId"));
+		Iterator it = activities.iterator();
+		while (it.hasNext())
+		{
+			Activity a = (Activity) it.next();
+			a.setEventCount(eventRepository.findByActivityActivityId(a.getActivityId()).size());
+			a.setPatientCount(patientRepository.getPatients(a.getActivityId()).size());
+			saveOrUpdate(a);
+		}
+		
+	}
 	private Surgery addSurgery(Integer surgeryNo, String surgeryName, String surgeryCategory) {
 		Surgery surgery;
 		if (surgeryRepository.findBySurgeryName(surgeryName).isEmpty()) {
@@ -315,9 +337,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		
 		deletePatterns();
 		List<Event> events = (List<Event>) eventRepository.findAll(new Sort ("eventId"));
-		Iterable <Event> es = eventRepository.findAll(new Sort ("eventId"));
-		es.forEach(p->System.out.println(p));
-	
+		
 		String road = "";
         String nps = "";
         int ei = -1;
@@ -327,8 +347,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		{		 
 			Event e = (Event)iterator.next();
 			tei = (int) e.getPatient().getPatientId();
-			if (tei != ei) {
-				
+			if (tei != ei) {		
 				 if (road.length() != 0) {
                      road = road.substring(0, road.length() - 2);
                      List<Pattern> patterns = patternRepository.findByTrace(road);
@@ -336,21 +355,20 @@ public class CommonServiceNeo4Impl implements CommonService {
                      if (iterator2.hasNext())
                      {      	
                     	 Pattern p = (Pattern) iterator2.next();
-                    	 p.setPatientNumber(p.getPatientNumber() + 1);
+                    	 p.setPatientCount(p.getPatientCount() + 1);
                     	 p.setMyPatients( p.getMyPatients() + "," + ei );
                     	 saveOrUpdate(p);
                      }
                      else {	 
-                    	 System.out.println("Saved: " +ei + " " +  road);
+                    	 System.out.println("Myroad:" + road);
                     	 Pattern p = Pattern.builder()
                     			 .patternId(addPatternId ())
                     			 .trace(road)
-                    			 .patientNumber(1)
+                    			 .patientCount(1)
                     			 .myPatients(Integer.toString(ei))
                     			 .build();
                     	 saveOrUpdate (p);
                      }
-                    	 
 				 }
 				 ei = tei;
                  road = "";
@@ -371,25 +389,40 @@ public class CommonServiceNeo4Impl implements CommonService {
 				starting = "Start";
 			}
 			// adding a path
-			addPath (e, starting.replace("->", ""), e.getActivity().getActivityName().toLowerCase().trim().replace("->", ""));
-			road += e.getActivity().getActivityName().toLowerCase().trim() + "->";
+			addPath (e, starting.replace("->", ""), e.getActivity().getActivityName().replace("->", ""));
+			road += e.getActivity().getActivityName() + "->";
 			
 		}
+		
+		// update event counts and patient counts of paths
+		updatePaths();
 	}
 
-	private void addPath(Event event, String startingActivity, String endingActivity) {
+	private void updatePaths() {
+		List <Path> paths = (List<Path>) pathRepository.findAll( new Sort ("pathId"));
+		Iterator it = paths.iterator();
+		while (it.hasNext())
+		{
+			Path path = (Path) it.next();
+			path.setEventCount(path.getEvents().size());
+			path.setPatientCount(path.getPatients().size());
+			saveOrUpdate(path);
+		}
+		
+	}
+	private void addPath(Event event, String from, String to) {
 		Path path = null;
-		List <Event> events = Lists.newArrayList();
-		List <Patient> patients = Lists.newArrayList();
+		List <Integer> events = Lists.newArrayList();
+		List <Integer> patients = Lists.newArrayList();
 
-		if (pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).isEmpty()) {
-			events.add(event);
-			patients.add(patientRepository.findByPatientId(event.getPatient().getPatientId()).get(0) );
+		if (pathRepository.findByFromAndTo(from,to).isEmpty()) {
+			events.add(event.getEventId());
+			patients.add(patientRepository.findByPatientId(event.getPatient().getPatientId()).get(0).getPatientId() );
 					
 			path = Path.builder()
 					.pathId(addPathId())
-					.startingActivity(startingActivity)
-					.endingActivity(endingActivity)
+					.from(from)
+					.to(to)
 					.events(events)
 					.patients(patients)
 					.build();			
@@ -397,16 +430,16 @@ public class CommonServiceNeo4Impl implements CommonService {
 		} 
 		else
 		{
-			path = pathRepository.findByStartingActivityAndEndingActivity(startingActivity,endingActivity).get(0);
-			System.out.println( "path:" + path.getStartingActivity());
+			path = pathRepository.findByFromAndTo(from,to).get(0);
+			System.out.println( "path:" + path.getFrom());
 			events.addAll(path.getEvents());
-			events.add(event);
+			events.add(event.getEventId());
 			
 			if (!existPatient (path.getPatients(), event.getPatient().getPatientId()))
 			{
 				//path.setPatientNumber(path.getPatientNumber() + 1 );
 				patients.addAll(path.getPatients());
-				patients.add(event.getPatient());
+				patients.add(event.getPatient().getPatientId());
 				path.setPatients(patients);
 			}
 			
@@ -416,7 +449,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		
 	}
 
-	private boolean existPatient(List<Patient> patients, double patientId) {
+	private boolean existPatient(List<Integer> patients, double patientId) {
 		
 		boolean exist = false;
 		if (!patients.isEmpty())
@@ -424,8 +457,8 @@ public class CommonServiceNeo4Impl implements CommonService {
 			Iterator it = patients.iterator();
 			while (it.hasNext())
 			{
-				Patient p = (Patient) it.next();
-				if ( p.getPatientId() == patientId)
+				int p = (Integer) it.next();
+				if ( p == patientId)
 					exist = true ;
 			}
 		}
@@ -503,19 +536,21 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	@Override
 	public void processMap() {
+		
 		List<Activity> activities = (List<Activity>) activityRepository.findAll(new Sort ("activityId"));
 		Iterator it = activities.iterator();
 		while (it.hasNext())
 		{
 			Activity a = (Activity) it.next();
-			a.setPatients(patientRepository.getPatients(a.getActivityId()));
-			a.setEvents(eventRepository.findByActivityActivityId(a.getActivityId()));
-			activityRepository.save(a);
+	//		a.setPatients(patientRepository.getPatients(a.getActivityId()));
+	//		a.setEvents(eventRepository.findByActivityActivityId(a.getActivityId()));
+	//		activityRepository.save(a);
 		
 		}
 		
 		
 	}
+	
 }
 
 

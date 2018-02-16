@@ -7,6 +7,7 @@ import tugba.mining.domain.BaseEntity;
 import tugba.mining.domain.Event;
 import tugba.mining.domain.Path;
 import tugba.mining.domain.Patient;
+import tugba.mining.domain.Pattern;
 import tugba.mining.util.RowContext;
 
 public interface CommonService {
@@ -14,6 +15,7 @@ public interface CommonService {
     List<Event> listEvent();
     List<Activity> listActivity();
     List<Path> listPath();
+    List<Pattern> listPattern();
     
     <T> T getById(Class <T> clazz, Long id);
     

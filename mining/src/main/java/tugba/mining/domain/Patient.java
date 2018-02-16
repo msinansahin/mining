@@ -10,15 +10,15 @@ import lombok.NoArgsConstructor;
 
 //@Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 @NodeEntity
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Patient extends BaseEntity {
 
-	private double patientId;
-	private double age;
+	private Integer patientId;
+	private Integer age;
 	private String gender;
 
 }

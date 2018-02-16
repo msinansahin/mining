@@ -23,13 +23,16 @@ public class Path extends BaseEntity {
 
 	private Integer pathId;
 //	@Relationship(type = "ACTIVITY", direction = Relationship.INCOMING)
-	private String startingActivity;
+	private String from;
 	
 //	@Relationship(type = "ACTIVITY", direction = Relationship.OUTGOING)
-	private String endingActivity;
+	private String to;
 	
-	private List <Event> events;
-	private List <Patient> patients;
+	private Integer eventCount;
+	private Integer patientCount;
+	
+	private List <Integer> events;
+	private List <Integer> patients;
 	private double totalDuration;
 	private double meanDuration;
 	
