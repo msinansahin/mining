@@ -52,14 +52,16 @@ public class CommonController {
 	public ResponseEntity<ProcessMap> getProcessMap() {
 		commonService.processMap();
 		ProcessMap map = ProcessMap.builder().build();
-		map.setEvents(commonService.listEvent());
 		map.setActivities(commonService.listActivity());
 		map.setPaths(commonService.listPath());
+		map.setPatterns(commonService.listPattern());
 		
-		Iterable activity = map.getActivities();
-		Iterable <Activity> es = map.getActivities();
-		es.forEach(p->System.out.println(es));
-	
+		Iterable <Pattern> ps = map.getPatterns();
+				ps.forEach(p->System.out.println(p));
+				
+		Iterable <Path> es = map.getPaths();
+		es.forEach(p->System.out.println(p));
+			
 		
 		
 		return ResponseEntity.ok(map);	
@@ -138,73 +140,9 @@ public class CommonController {
 	}
 	@GetMapping("/patterns")
 	public ResponseEntity<?> getPatterns() throws SQLException {
-		 
-			/*
-			 * String minedColon = "activityname";
-			String durationColon = null;
-		    final String CHARSET = "windows-1254";
-		    final String DBCLASSNAME = "org.apache.derby.jdbc.EmbeddedDriver";
-		    final String DBNAME = "tugbatezdb";
-		    final String DBURL = "jdbc:derby:" + DBNAME + ";create=true;user=tugba;password=tez";
-		    Connection conn = DriverManager.getConnection(DBURL);
-            
-            String createStmt = "create table event (";
-            createStmt += "eventId int, ";
-            createStmt += "patientId int, ";
-            createStmt += "activityname varchar(500), ";
-            createStmt += "startdate varchar(500), ";
-            createStmt += "finishdate varchar(500), ";
-            createStmt += "department varchar(500), ";
-            createStmt += "service varchar(500), ";
-            createStmt += "doctor varchar(500))";
-           
-            Statement stmt = conn.createStatement();      
-            try {
-                stmt.execute("drop table event");
-            } catch (Exception ex) {
-            }
-            stmt.execute(createStmt);
-
-            String insertStmt;
-            List <Event> events = commonService.listEvent();
-            System.out.println("Event size:" + events.size());
-            Iterator iterator = events.iterator();
-            int cell=0;
-            int po = 0;
-            while(iterator.hasNext()) {
-          	
-            
-            	Event e = (Event) iterator.next();
-            	
-            	insertStmt = "insert into event values(" + (e.getEventId()) + "," + e.getPatient().getPatientId() + ",'";
-                insertStmt += e.getActivity() + "','";
-                insertStmt += e.getStartDate() + "','";
-                insertStmt += e.getFinishDate() + "','";
-                insertStmt += e.getDepartment() + "','";
-                insertStmt += e.getService() + "','";
-                insertStmt += e.getDoctor() + "')";
-             
-                try {
-					if (stmt.executeUpdate(insertStmt) != 1) {
-					    throw new Exception("eklenemedi:" + insertStmt);
-					}
-				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-            }
-            try {
-                stmt.execute("drop table pattern");
-            } catch (Exception ex) {
-            }
-            */
-			commonService.addPatterns();
-           
-		 return ResponseEntity.ok(true);
-	 }
+		commonService.addPatterns();
+		return ResponseEntity.ok(true);
+	}
 	
 	@Autowired
 	EventRepository er;
@@ -214,43 +152,21 @@ public class CommonController {
 	PatternRepository pr;
 	@GetMapping("/test")
 	public ResponseEntity<?> test(Double patientId, String activity, Date startDate) {
-		
-		
-		ProcessMap pm = ProcessMap.builder()
-				.activities((List<Activity>) ar.findAll())
-				.paths(generatePaths())
-				.events ((List<Event>) er.findAll( new Sort ("eventId"))).build();
-		
 		Iterator it = (pr.findAll(new Sort ("patternId"))).iterator();
 		while (it.hasNext())
 		{
 			Pattern p = (Pattern)it.next();
-			String trace = p.getTrace();
-			StringTokenizer str = new StringTokenizer ( p.getTrace(), "->");
-			System.out.println("Pattern:" + p.getPatternId() +" ");
-			while (str.hasMoreElements())
-			{
-				System.out.println();
-				System.out.print(str.nextToken());
-				System.out.println();
-			}
-			
-			
+			System.out.println("Pattern:" + p.getPatternId() +":" + p.getTrace() );
+			System.out.println ("Patient Count" + p.getPatientCount() + p.getMyPatients());
 			
 		}
 		return ResponseEntity.ok(true);
 	}
 	
-	private List<Path> generatePaths() {
-		
-		
-		return null;
-	}
-	@GetMapping("/testMap")
+	
+	@GetMapping("/testEventsFile")
 	public ResponseEntity<?> testMap() {
-		Map<String, String> map = new HashMap();
-		map.put("Accsad", "123");
-		map.put("key2", "125");
-		return ResponseEntity.ok(map);
+		
+		return ResponseEntity.ok(true);
 	}
 }

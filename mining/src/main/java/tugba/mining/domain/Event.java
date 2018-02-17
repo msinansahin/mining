@@ -6,15 +6,19 @@ import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import tugba.mining.domain.Patient.PatientBuilder;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
+@ToString(exclude={"activity"})
+@EqualsAndHashCode(callSuper = true, exclude={"activity"})
 //@Entity
 @NodeEntity
 @NoArgsConstructor
@@ -27,6 +31,7 @@ public class Event extends BaseEntity {
 	@Relationship(type = "PATIENT", direction = Relationship.UNDIRECTED)
 	private Patient patient;
 	//@ManyToOne
+	@JsonIgnore
 	@Relationship(type = "ACTIVITY", direction = Relationship.UNDIRECTED)
 	private Activity activity;
 	private Date startDate;
@@ -34,8 +39,8 @@ public class Event extends BaseEntity {
 	private String department;
 	private String service;
 	//@ManyToOne
-		@Relationship(type = "DOCTOR", direction = Relationship.UNDIRECTED)
-		private Doctor doctor;
+	@Relationship(type = "DOCTOR", direction = Relationship.UNDIRECTED)
+	private Doctor doctor;
 	
 	//@ManyToOne
 	@Relationship(type = "SURGERY", direction = Relationship.UNDIRECTED)
