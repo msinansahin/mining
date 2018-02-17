@@ -166,6 +166,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 		Patient patient = addPatient(row.getPatientId(), row.getAge(), row.getGender());
 		Doctor doctor = addDoctor(row.getDoctor());
 		Surgery surgery = addSurgery(row.getSurgeryNo(), row.getSurgeryName(), row.getSurgeryCategory());
+		
 		// admission
 		addEvent(row.getEventId(), patient, row.getActivityAdmission(), row.getAdmissionDate(),
 				row.getDepartment(), row.getService(), doctor, surgery);
