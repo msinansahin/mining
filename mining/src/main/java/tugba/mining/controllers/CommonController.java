@@ -82,6 +82,7 @@ public class CommonController {
 		//commonService.addActivity("Start");
 		try {
 			FileInputStream excelFile = new FileInputStream(new File("deneme2.xls"));
+			commonService.addActivity ("Start");
 			HSSFWorkbook workbook = new HSSFWorkbook(excelFile);
 		    HSSFSheet datatypeSheet =  workbook.getSheetAt(0);
 		    Iterator<Row> iterator = datatypeSheet.iterator();
