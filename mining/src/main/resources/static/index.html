@@ -13,6 +13,7 @@
 
   <script src="./lib/bootstrap-table.js"></script>
   <script src="./lib/go.js"></script>
+  <script src="./properties.js"></script>
   <script src="./mining.js"></script>
   <script src="./diagram.js"></script>
   
@@ -60,16 +61,16 @@
 	var diagram;
 	
 	function init() {
-		
+		var properties = new Properties('properties');
 		$.get(URL_PROCESS_MAP, function(data) {
 			console.log(data);
 			var processMap = new ProcessMap(data);
 			var data = processMap.toData();
 			data.prepare();
-			diagram = new Diagram(data);
+			diagram = new Diagram(data, properties);
 		});
-		
-		/* örnek için burası açılabilir
+		/* örnek için burası açılabilir */
+		/*
 		nodeDataArray = [
 			{"oid":-1,"text": "", "category": "start"},
 			{"oid":1, "text":"Admision to Hospital", "sayi": "1163", "props":[{key:"Absolute Freg", value: 1121},{key: "Case Freq", value: 343}]},
@@ -99,10 +100,10 @@
 			{"from": 8, "to": 9, "text": 1155},
 			{"from": 9, "to": -2, "text": 1122},
 			{"from": 9, "to": 1, "text": 25}];
-		
+
 		var data = new Data(nodeDataArray, linkDataArray);
 		data.prepare();
-		var diagram = new Diagram(data);	
+		var diagram = new Diagram(data, properties);	
 		*/
 	}
 
@@ -118,18 +119,6 @@
 		return data;
 	}
 	
-	var obj = {
-		"description" : "An extended Bootstrap table with radio, checkbox, sort, pagination, and other added features. (supports twitter bootstrap v2 and v3) ",
-		"key1" : "value1",
-		"key2" : "value2",
-		"key3" : "value3"
-	};
-
-	$(function() {
-		$('#properties').bootstrapTable({
-			data : responseHanlder(obj)
-		});
-	});
 </script>
 </head>
 <body onload="init()">

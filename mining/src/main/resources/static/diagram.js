@@ -56,12 +56,25 @@ function linkTemplates(diagram) {
 	});
 }
 
+function addDiagramListener(diagram, properties) {
+	diagram.addDiagramListener("ObjectSingleClicked",
+			function(e, graphObj) {
+				var part = e.subject.part;
+				if (!(part instanceof go.Link) && properties) {
+					properties.load(part.data);
+				} else if (properties) {
+					properties.remove();
+				}
+			});	
+}
+
 /**
  * 
  * @param data type of Data
+ * @param properties node özelliklerinin yazıldığı panel işlerini yapan sınıf
  * @returns
  */
-function Diagram(data) {
+function Diagram(data, properties) {
 	var $ = go.GraphObject.make; // for conciseness in defining templates
 	var lightText = 'whitesmoke';
 	this.myDiagram = $(go.Diagram, "myDiagramDiv",  // create a Diagram for the DIV HTML element
@@ -116,8 +129,7 @@ function Diagram(data) {
 		        stroke: lightText,
 		        margin: 8,
 		        maxSize: new go.Size(160, NaN),
-		        wrap: go.TextBlock.WrapFit,
-		        //editable: true
+		        wrap: go.TextBlock.WrapFit
 		      },
 		      new go.Binding("text").makeTwoWay())
 		  )
@@ -145,37 +157,8 @@ function Diagram(data) {
 		  )
 		));	  
 		
-		// but use the default Link template, by not setting Diagram.linkTemplate
-		
-		
-		// create the model data that will be represented by Nodes and Links
-		/*
-		myDiagram.model = new go.GraphLinksModel(
-		[
-		{ key: "Alpha", color: "lightblue" },
-		{ key: "Beta", color: "orange" },
-		{ key: "Gamma", color: "lightgreen" },
-		{ key: "Delta", color: "pink" },
-		{ key: "Sinan", color: "blue" }
-		],
-		[
-		{ from: "Alpha", to: "Beta", "category":"flow", text: "50" },
-		{ from: "Alpha", to: "Gamma",  text: "12"},
-		{ from: "Beta", to: "Beta", text: "24"},
-		{ from: "Gamma", to: "Delta", text: "20" },
-		{ from: "Delta", to: "Alpha", text: "40"},
-		{ from: "Sinan", to: "Delta",  "category":"flow", text: "5"},
-		{ from: "Beta", to: "Sinan", text: "15"}
-		]);
-		*/
 
 		// create the model data that will be represented by Nodes and Links
 		this.myDiagram.model = new go.GraphLinksModel(data.nodeDataArray, data.linkDataArray);
-
-		this.myDiagram.addDiagramListener("ObjectSingleClicked", function(e) {
-			var part = e.subject.part;
-			if (!(part instanceof go.Link)) {
-				console.log("Clicked on " + part.data.key);
-			}
-		});
+		addDiagramListener(this.myDiagram, properties);
 }
