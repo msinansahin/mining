@@ -54,6 +54,8 @@ function ProcessMap(data) {
 			nodeDataArray.push(_this.createActivity(activity));
 		});
 		
+		// If Start does not exists in activities add it
+		
 		console.log("paths length: " + this.paths.length);
 		this.paths.forEach(function(path) {
 			linkDataArray.push(_this.createPath(path, this));
@@ -68,7 +70,7 @@ function ProcessMap(data) {
 	this.createActivity = function(activity) {
 		return {
 			"oid"		: activity.activityId,
-			"sayi"		: (activity.patients ? activity.patients.length : 0) + '',
+			"sayi"		: (activity.patients ? activity.patients.length : activity.patientCount) + '',
 			"text"		: isStart(activity) ? "" : activity.activityName,
 			"category"	: isStart(activity) ? "start" : ""
 		};
@@ -76,8 +78,8 @@ function ProcessMap(data) {
 	
 	this.createPath = function(path) {
 		return {
-			"from"	: this.findActivityIdByName(path.startingActivity),
-			"to"	: this.findActivityIdByName(path.endingActivity), 
+			"from"	: this.findActivityIdByName(path.from),
+			"to"	: this.findActivityIdByName(path.to), 
 			"text"	: (path.patients ? path.patients.length : 0) + '',
 		};
 	}
@@ -89,6 +91,7 @@ function ProcessMap(data) {
 				return activity.activityId;
 			}
 		}
+		alert(activityName + ' aktivitesi bulunamadı. Diyagram çizilemeyecek.');
 		return 'NF';
 	}
 	
