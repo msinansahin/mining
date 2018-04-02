@@ -1,6 +1,8 @@
 package tugba.mining.domain;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -45,7 +47,38 @@ public class Event extends BaseEntity {
 	//@ManyToOne
 	@Relationship(type = "SURGERY", direction = Relationship.UNDIRECTED)
 	private Surgery surgery;
-	
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+        sb.append(this.getPatient().getPatientId());
+        sb.append(';');
+        sb.append(this.getPatient().getAge());
+        sb.append(';');
+        sb.append(this.getPatient().getGender());
+        sb.append(';');
+        sb.append(this.getSurgery().getSurgeryNo());
+        sb.append(';');
+        sb.append(this.getSurgery().getSurgeryCategory());
+        sb.append(';');
+        sb.append(this.getSurgery().getSurgeryName());
+        sb.append(';');
+        sb.append(this.getActivity().getActivityName());
+        sb.append(';');
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+      //  formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        
+        sb.append(formatter.format (this.getStartDate()));
+        sb.append(';');
+        sb.append(formatter.format (this.getStartDate()));
+        sb.append(';');
+        sb.append(this.getDepartment());
+        sb.append(';');
+        sb.append(this.getService());
+        sb.append(';');
+        sb.append(this.getDoctor());
+        sb.append('\n');
+        return(sb.toString());
+	}
 	
 		
 	

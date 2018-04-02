@@ -1,5 +1,9 @@
 package tugba.mining.services;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
@@ -9,6 +13,12 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -31,6 +41,7 @@ import tugba.mining.repositories.PathRepository;
 import tugba.mining.repositories.PatientRepository;
 import tugba.mining.repositories.SurgeryRepository;
 import tugba.mining.repositories.PatternRepository;
+import tugba.mining.util.EventRow;
 import tugba.mining.util.RowContext;
 
 @Service
@@ -40,7 +51,9 @@ public class CommonServiceNeo4Impl implements CommonService {
 	public static Integer patternId = 0;
 	public static Integer pathId = 0;
 	public static Integer activityId = 0;
-
+	public static Integer eventRowId = 0;
+	
+	public static List <EventRow> eventRows = Lists.newArrayList();
 	@Autowired
 	EventRepository eventRepository;
 
@@ -146,12 +159,13 @@ public class CommonServiceNeo4Impl implements CommonService {
 		doctorRepository.deleteAll();
 		eventRepository.deleteAll();
 		surgeryRepository.deleteAll();
-		patternRepository.deleteAll();
 		activityRepository.deleteAll();
 		patternRepository.deleteAll();
+		pathRepository.deleteAll();
 		patternId = 0;
 		eventId = 0; 
 		activityId = 0;
+		
 	}
 
 	@Override
@@ -159,17 +173,85 @@ public class CommonServiceNeo4Impl implements CommonService {
 		// TODO Auto-generated method stub
 
 	}
+	/*@Override
+	public void addEventRowContext(RowContext row) {
+	
+		// admission
+		addEventRow( row, "Admission to Hospital", row.getAdmissionDate());
+		// servis degisikliği
+		
+		if ("E".equals(row.getServisDegisiklik())) // null kontrolü yok, başa al karşılaştıracağın değeri
+		{
+			String activity = "";
+			if (row.getService2().contains("Yoğun Bakı"))
+				activity = "Transfer to Intensive Care Unit";
+			else
+				activity = "Change Service";
+			
+			addEventRow( row, activity, row.getServisDegisiklikTar());
+		}
+		// bolum degisikliği
+		if ("E".equals(row.getBolumDegisiklik())) {
+			addEventRow( row,"Change Department", row.getBolumDegisiklikTar());
+		}
+		// surgerystarted
+		addEventRow( row,"Surgery Started", row.getSurgeryStartDate());
+		// surgeryfinished
+		addEventRow( row,"Surgery Finished", row.getSurgeryFinishDate());
 
+		// servise cıkıs
+		addEventRow( row, "Transfer to Service", row.getServiseCikisTar());
+
+		// taburcu
+		addEventRow( row, "Discharged", row.getTaburcuDate());
+	}*/
+	/*
+	@Override
+	public void addEventRow(RowContext row, String activity, Date activityDate) {
+		if (activityDate == null)
+			return;
+		if (!existEventRow (row.getPatientId(), activity, activityDate))
+		{
+			EventRow eventRow = EventRow.builder()
+					.patientId(row.getPatientId())
+					.age(row.getAge())
+					.gender(row.getGender())
+					.surgeryNo(row.getSurgeryNo())
+					.surgeryCategory(row.getSurgeryCategory())
+					.surgeryName(row.getSurgeryName())
+					.activity(activity)
+					.activityDate(activityDate)
+					.department(row.getDepartment())
+					.service(row.getService())
+					.doctor(row.getDoctor())
+					.build();
+			eventRows.add(eventRow);
+		}
+		
+	}*/
+	/*private boolean existEventRow(Integer patientId, String activity, Date activityDate) {
+		Iterator it  = eventRows.iterator();
+		while (it.hasNext())
+		{
+			EventRow eventRow = (EventRow) it.next();
+			if(eventRow.getPatientId() == patientId &&
+					eventRow.getActivity().equals(activity) &&
+					eventRow.getActivityDate().equals(activityDate) )
+				return true;
+				
+		}
+		return false;
+	}*/
 	@Override
 	public void addRowContext(RowContext row) {
-
+	
 		Patient patient = addPatient(row.getPatientId(), row.getAge(), row.getGender());
 		Doctor doctor = addDoctor(row.getDoctor());
 		Surgery surgery = addSurgery(row.getSurgeryNo(), row.getSurgeryName(), row.getSurgeryCategory());
 		
 		// admission
-		addEvent(row.getEventId(), patient, row.getActivityAdmission(), row.getAdmissionDate(),
-				row.getDepartment(), row.getService(), doctor, surgery);
+		addEvent( patient, "Admission to Hospital", row.getAdmissionDate(),
+					row.getDepartment(), row.getService(), doctor, surgery);
 		// servis degisikliği
 		if ("E".equals(row.getServisDegisiklik())) // null kontrolü yok, başa al karşılaştıracağın değeri
 		{
@@ -180,65 +262,105 @@ public class CommonServiceNeo4Impl implements CommonService {
 				activity = "Transfer to Intensive Care Unit";
 			else
 				activity = "Change Service";
-			addEvent(row.getEventId(), patient, activity, row.getServisDegisiklikTar(),
+			
+			addEvent( patient, activity, row.getServisDegisiklikTar(),
 					row.getDepartment(), row.getService2(), doctor2, surgery);
 		}
 
 		// bolum degisikliği
-		if ("E".equals(row.getBolumDegisiklik())) {
+		if ("E".equals(row.getBolumDegisiklik()) ) {
 			Doctor doctor2 = addDoctor(row.getDoctor2());
-			addEvent(row.getEventId(), patient, "Change Department", row.getBolumDegisiklikTar(),
+			addEvent( patient, "Change Department", row.getBolumDegisiklikTar(),
 					row.getDepartment(), row.getService2(), doctor2, surgery);
 		}
 		// ameliyat_bas
 		Doctor surgeryDoctor = addDoctor(row.getSurgeryDoctor());
-		
 		// surgerystarted
-		addEvent(row.getEventId(), patient, "Surgery Started", row.getSurgeryStartDate(),
+		addEvent( patient, "Surgery Started", row.getSurgeryStartDate(),
 				row.getDepartment(), row.getService(), surgeryDoctor, surgery);
 
 		// surgeryfinished
-		addEvent(row.getEventId(), patient, "Surgery Finished", row.getSurgeryFinishDate(),
+		addEvent(patient, "Surgery Finished", row.getSurgeryFinishDate(),
 				row.getDepartment(), row.getService(), surgeryDoctor, surgery);
-
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		String formattedDate = formatter.format(row.getOlumDate());
-
-		if (!formattedDate.equals("2017-01-01")) {
-			addEvent(row.getEventId(), patient, row.getActivityOlum(), row.getOlumDate(),
+		addEvent( patient, "Ex", row.getOlumDate(),
 					row.getDepartment(), row.getService(), doctor, surgery);
-		}
-
 		// servise cıkıs
-		addEvent(row.getEventId(), patient, row.getActivityServiseCikis(), row.getServiseCikisTar(),
+		addEvent( patient, "Transfer to Service", row.getServiseCikisTar(),
 				row.getDepartment(), row.getService(), doctor, surgery);
 		// taburcu
-		addEvent(row.getEventId(), patient, row.getActivityTaburcu(), row.getTaburcuDate(),
-				row.getDepartment(), row.getService(), doctor, surgery);
+		addEvent( patient, "Discharged", row.getTaburcuDate(),
+					row.getDepartment(), row.getService(), doctor, surgery);
 		
-		//update events by start data
-		updateEventsByStartDate();
 		
-		// eventcount and patientcount of activites
-		updateActivities();
-				
 	}
-
-	private void updateActivities() {
-		List <Activity> activities= (List<Activity>) activityRepository.findAll( new Sort ("activityId"));
-		Iterator it = activities.iterator();
-		while (it.hasNext())
-		{
-			Activity a = (Activity) it.next();
-			a.setEventCount(eventRepository.findByActivityActivityId(a.getActivityId()).size());
-			a.setPatientCount(patientRepository.getPatients(a.getActivityId()).size());
-			saveOrUpdate(a);
+	/*public void writeEventRows() {
+		
+        Workbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = (HSSFSheet) workbook.createSheet("ALL");
+        long cell=0;
+        long eventNumber=0;
+    	System.out.println(eventRows.size());
+    	
+        for ( Iterator<EventRow> iter = eventRows.listIterator(); iter.hasNext();) {
+	      	System.out.println(eventNumber);
+	        EventRow e = iter.next();
+	       	HSSFRow rowEvent = sheet.createRow((int) cell );
+        	HSSFCell cellA1 = rowEvent.createCell((int) 0);
+        	cellA1.setCellValue(eventNumber);
+            
+        	HSSFCell cellA2 = rowEvent.createCell((int) 1);
+        	cellA2.setCellValue(e.getPatientId());
+        	
+        	HSSFCell cellA3 = rowEvent.createCell((int) 2);
+        	cellA3.setCellValue(e.getAge());
+        
+        	HSSFCell cellA4 = rowEvent.createCell((int) 3);
+        	cellA4.setCellValue(e.getGender());
+        	
+        	HSSFCell cellA5 = rowEvent.createCell((int) 4);
+        	cellA5.setCellValue(e.getSurgeryCategory());
+        
+        	HSSFCell cellA6 = rowEvent.createCell((int) 5);
+        	cellA6.setCellValue(e.getSurgeryName());
+        
+        	HSSFCell cellA7 = rowEvent.createCell((int) 6);
+        	cellA7.setCellValue(e.getActivity());
+        	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            
+        	HSSFCell cellA8 = rowEvent.createCell((int) 7); 
+        	cellA8.setCellValue(formatter.format (e.getActivityDate()));
+        	
+        	HSSFCell cellA9 = rowEvent.createCell((int) 8);
+        	cellA9.setCellValue(formatter.format (e.getActivityDate()));
+	        
+        	HSSFCell cellA10 = rowEvent.createCell((int) 9);
+        	cellA10.setCellValue(e.getDepartment());
+        	
+        	HSSFCell cellA11 = rowEvent.createCell((int) 10);
+        	cellA11.setCellValue(e.getService() );
+        	
+        	HSSFCell cellA12 = rowEvent.createCell((int) 11);
+        	cellA12.setCellValue(e.getDoctor());
+        	
+        	cell++;
+        	eventNumber++;
+        }
+        try {
+			FileOutputStream outputStream = new FileOutputStream(new File("events.xls"));
+		
+			workbook.write(outputStream);
+			workbook.close();
+		} catch ( IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		
-	}
+	}*/
+	
 	private Surgery addSurgery(Integer surgeryNo, String surgeryName, String surgeryCategory) {
 		Surgery surgery;
-		if (surgeryRepository.findBySurgeryName(surgeryName).isEmpty()) {
+		List <Surgery> surgeries = surgeryRepository.findBySurgeryName(surgeryName);
+		if (surgeries.isEmpty()) {
 			surgery = Surgery.builder()
 					.surgeryNo(surgeryNo)
 					.surgeryName(surgeryName)
@@ -246,29 +368,31 @@ public class CommonServiceNeo4Impl implements CommonService {
 					.build();
 			saveOrUpdate(surgery);
 		} else
-			surgery = surgeryRepository.findBySurgeryName(surgeryName).get(0);
+			surgery = surgeries.get(0);
 
 		return surgery;
 	}
 
 	private Doctor addDoctor(String name) {
 		Doctor doctor = null;
-		if (doctorRepository.findByName(name).isEmpty()) {
+		List <Doctor> doctors = doctorRepository.findByName(name);
+		if (doctors.isEmpty()) {
 			doctor = Doctor.builder()
 					.name(name)
 					.build();
 			saveOrUpdate(doctor);
 		} else
-			doctor = doctorRepository.findByName(name).get(0);
+			doctor = doctors.get(0);
 
 		return doctor;
 	}
 
-	private void addEvent(Integer eventId, Patient patient, String activity, Date activityDate, String department,
+	private void addEvent( Patient patient, String activity, Date activityDate, String department,
 			String service, Doctor doctor, Surgery surgery) {
-
+		// if activity date is not defined, do not record
+		if (activityDate ==null)
+			return;
 		if ( eventRepository.findByPatientPatientIdAndActivityActivityNameAndStartDate(patient.getPatientId(), activity, activityDate).isEmpty()) {
-
 			Activity a = addActivity(activity);
 			Event event = Event.builder()
 					.eventId(addEventId())
@@ -290,14 +414,15 @@ public class CommonServiceNeo4Impl implements CommonService {
 
 	public Activity addActivity(String activityName) {
 		Activity activity = null;
-		if (activityRepository.findByActivityName(activityName).isEmpty()) {
+		List <Activity> activities = activityRepository.findByActivityName(activityName);
+		if (activities.isEmpty()) {
 			activity = Activity.builder()
 					.activityId(addActivityId())
 					.activityName(activityName)
 					.build();
 			saveOrUpdate(activity);
 		} else
-			activity = activityRepository.findByActivityName(activityName).get(0);
+			activity = activities.get(0);
 
 		return activity;
 	}
@@ -318,9 +443,14 @@ public class CommonServiceNeo4Impl implements CommonService {
 		activityId = activityId + 1;
 		return activityId;
 	}
+	private Integer addEventRowId() {
+		eventRowId = eventRowId + 1;
+		return eventRowId;
+	}
 	private Patient addPatient(Integer patienId, Integer age, String gender) {
 		Patient patient = null;
-		if (patientRepository.findByPatientId(patienId).isEmpty()) {
+		List<Patient> patients = patientRepository.findByPatientId(patienId);
+		if (patients.isEmpty()) {
 			patient = Patient.builder()
 					.patientId(patienId)
 					.age(age)
@@ -328,7 +458,7 @@ public class CommonServiceNeo4Impl implements CommonService {
 					.build();
 			saveOrUpdate(patient);
 		} else
-			patient = patientRepository.findByPatientId(patienId).get(0);
+			patient = patients.get(0);
 
 		return patient;
 	}
@@ -361,7 +491,6 @@ public class CommonServiceNeo4Impl implements CommonService {
                     	 saveOrUpdate(p);
                      }
                      else {	 
-                    	 System.out.println("Myroad:" + road);
                     	 Pattern p = Pattern.builder()
                     			 .patternId(addPatternId ())
                     			 .trace(road)
@@ -550,6 +679,23 @@ public class CommonServiceNeo4Impl implements CommonService {
 		}
 		
 		
+	}
+	@Override
+	public void updateActivities() {
+		List <Activity> activities= (List<Activity>) activityRepository.findAll( new Sort ("activityId"));
+		Iterator it = activities.iterator();
+		while (it.hasNext())
+		{
+			Activity a = (Activity) it.next();
+			a.setEventCount(eventRepository.findByActivityActivityId(a.getActivityId()).size());
+			a.setPatientCount(patientRepository.getPatients(a.getActivityId()).size());
+			saveOrUpdate(a);
+		}
+	}
+	@Override
+	public List<EventRow> getEventRows() {
+		// TODO Auto-generated method stub
+		return this.eventRows;
 	}
 	
 }

@@ -1,5 +1,6 @@
 package tugba.mining.services;
 
+import java.util.Date;
 import java.util.List;
 
 import tugba.mining.domain.Activity;
@@ -8,6 +9,7 @@ import tugba.mining.domain.Event;
 import tugba.mining.domain.Path;
 import tugba.mining.domain.Patient;
 import tugba.mining.domain.Pattern;
+import tugba.mining.util.EventRow;
 import tugba.mining.util.RowContext;
 
 public interface CommonService {
@@ -16,7 +18,7 @@ public interface CommonService {
     List<Activity> listActivity();
     List<Path> listPath();
     List<Pattern> listPattern();
-    
+    List<EventRow> getEventRows();
     <T> T getById(Class <T> clazz, Long id);
     
     <T> boolean exists(Class <T> clazz, Long id);
@@ -34,9 +36,15 @@ public interface CommonService {
 	
 	// update events by start date for each patient and updates in neo4j
 	void updateEventsByStartDate();
-
+	void updateActivities();
+	
 	void processMap();
 	
+	
 	Activity addActivity(String activityName);
+	//void writeEventRows();
+	//void addEventRow(RowContext row, String activity, Date activityDate);
+	//void addEventRowContext(RowContext row);
+	
 	
 }

@@ -25,21 +25,19 @@ public class DataFileWriter {
 	EventRepository er;
 	
 	public DataFileWriter() throws IOException {
-		FileOutputStream excelFile = new FileOutputStream(new File("events.xls"));
-        Workbook workbook = new HSSFWorkbook();
+		Workbook workbook = new HSSFWorkbook();
         HSSFSheet sheet = (HSSFSheet) workbook.createSheet("ALL");
         List<Event> events = (List<Event>) er.findAll( new Sort ("eventId")).iterator();
         Iterator iterator = events.iterator();
-       
         
         
-        int cell=0;
+        int cell=1;
         int eventnumber=0;
         while(iterator.hasNext()) {
       	
         	Event e = (Event)iterator.next();
         	
-        	HSSFRow rowEvent = sheet.createRow((short) cell );
+            HSSFRow rowEvent = sheet.createRow((short) cell );
         	HSSFCell cellA1 = rowEvent.createCell((short) 0);
         	cellA1.setCellValue(e.getEventId());
  
@@ -84,6 +82,7 @@ public class DataFileWriter {
          
         try (FileOutputStream outputStream = new FileOutputStream(new File("events.xls"))) {
             workbook.write(outputStream);
+            workbook.close();
         }
     }
 }

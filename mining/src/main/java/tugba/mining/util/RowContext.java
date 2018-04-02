@@ -23,10 +23,8 @@ public class RowContext {
 	private Integer surgeryNo; 
 	private Integer age; 
 	private String gender; 
-	private String activitySurgeryOrder; 
 	private Date surgeryOrderDate; 
 	private String surgeryCategory;
-	private String activityAdmission; 
 	private Date admissionDate; 
 	private String department;
 	private String service; 
@@ -43,11 +41,8 @@ public class RowContext {
 	private Date surgeryFinishDate; 
 	private String surgeryName; 
 	private String surgeryDoctor;
-	private String activityServiseCikis;  
 	private Date serviseCikisTar ; 
-	private String activityOlum;
 	private Date olumDate; 
-	private String activityTaburcu; 
 	private Date taburcuDate; 
 	private String kesintanı;
 }
