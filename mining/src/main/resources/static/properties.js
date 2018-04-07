@@ -10,6 +10,7 @@ function Properties(elementId) {
 	 * tabloya nesneyi yazar
 	 */
 	this.load = function(obj) {
+		$('#properties-div').show();
 		var data = this.prepareObject(obj);
 		$('#' + this.elementId).bootstrapTable({
 			data : data
