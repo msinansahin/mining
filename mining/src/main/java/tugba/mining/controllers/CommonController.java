@@ -54,7 +54,10 @@ import tugba.mining.repositories.EventRepository;
 import tugba.mining.repositories.PatternRepository;
 import tugba.mining.services.CommonService;
 import tugba.mining.util.EventRow;
+import tugba.mining.util.RowContextKons;
 import tugba.mining.util.RowContext;
+import tugba.mining.util.RowContextER;
+
 import java.util.List;
 @Controller
 public class CommonController {
@@ -74,15 +77,10 @@ public class CommonController {
 		map.setActivities(commonService.listActivity());
 		map.setPaths(commonService.listPath());
 		map.setPatterns(commonService.listPattern());
-		
 		Iterable <Pattern> ps = map.getPatterns();
-				ps.forEach(p->System.out.println(p));
-				
+		ps.forEach(p->System.out.println(p));
 		Iterable <Path> es = map.getPaths();
 		es.forEach(p->System.out.println(p));
-			
-		
-		
 		return ResponseEntity.ok(map);	
 	}
 	
@@ -113,8 +111,120 @@ public class CommonController {
 			// eventcount and patientcount of activites
 	        commonService.updateActivities();
 	        // write events to excel fil
-			//writeEventsExcel();		
+			writeEventsExcel();		
 			writeEventsCsv();		
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+		return ResponseEntity.ok(true);
+		
+	}
+	private void writeEventsExcelAcil() {
+		 Workbook workbook = new HSSFWorkbook();
+	     HSSFSheet sheet = (HSSFSheet) workbook.createSheet("ALL");
+	     long cell=0;
+	     for (Iterator<Event> iter = er.findAll(new Sort("eventId")).iterator(); iter.hasNext();)
+	        {
+	            Event e = iter.next();
+	            System.out.println (e.getEventId() + " " + e.getActivity().getActivityName() + " " + e.getPatient().getPatientId() );
+		       	HSSFRow rowEvent = sheet.createRow((int) cell );
+	        	HSSFCell cellA1 = rowEvent.createCell((int) 0);
+	        	cellA1.setCellValue(e.getEventId());
+	            
+	        	HSSFCell cellA2 = rowEvent.createCell((int) 1);
+	        	cellA2.setCellValue(e.getPatient().getPatientId());
+	        	
+	        	HSSFCell cellA3 = rowEvent.createCell((int) 2);
+	        	cellA3.setCellValue(e.getPatient().getAge());
+	        
+	        	HSSFCell cellA4 = rowEvent.createCell((int) 3);
+	        	cellA4.setCellValue(e.getPatient().getGender());
+	        	
+	        	HSSFCell cellA5 = rowEvent.createCell((int) 4);
+	        	cellA5.setCellValue(e.getAcileGelisDurum());
+	        
+	        	HSSFCell cellA6 = rowEvent.createCell((int) 5);
+	        	cellA6.setCellValue(e.getAcilDurum());
+	        
+	        	HSSFCell cellA7 = rowEvent.createCell((int) 6);
+	        	cellA7.setCellValue(e.getActivity().getActivityName());
+	        	
+	        	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	        	HSSFCell cellA8 = rowEvent.createCell((int) 7); 
+	        	cellA8.setCellValue(formatter.format (e.getStartDate()));
+	        	
+	        	HSSFCell cellA9 = rowEvent.createCell((int) 8);
+	        	if ( e.getFinishDate() != null)
+		        	cellA9.setCellValue(formatter.format (e.getFinishDate()));
+		        
+	        	HSSFCell cellA10 = rowEvent.createCell((int) 9);
+	        	cellA10.setCellValue(e.getDepartment());
+	        	
+	        	HSSFCell cellA11 = rowEvent.createCell((int) 10);
+	        	cellA11.setCellValue(e.getService() );
+	        	
+	        	HSSFCell cellA12 = rowEvent.createCell((int) 11);
+	        	cellA12.setCellValue(e.getDoctor().getName());
+	        	
+	        	HSSFCell cellA13 = rowEvent.createCell((int) 12);
+	        	cellA13.setCellValue(e.getAcileGelisDurum());
+	        	
+	        	HSSFCell cellA14 = rowEvent.createCell((int) 13);
+	        	cellA14.setCellValue(e.getAcilDurum());
+	        	
+	        	HSSFCell cellA15 = rowEvent.createCell((int) 14);
+	        	cellA15.setCellValue(e.getDoctor().getName());
+	        	
+	        	HSSFCell cellA16 = rowEvent.createCell((int) 15);
+	        	cellA16.setCellValue(e.getTani());
+	        	
+	        	cell++;
+	        }
+	        try {
+				FileOutputStream outputStream = new FileOutputStream(new File("events-acil-detail.xls"));
+			
+				workbook.write(outputStream);
+				workbook.close();
+			} catch ( IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+	}
+	
+	@GetMapping("/vt-hazirla-acil")
+	public ResponseEntity<?> vtHazirlaAcil() {		
+		commonService.deleteAll();	
+		//commonService.addActivity("Start");
+		try {
+			FileInputStream excelFile = new FileInputStream(new File("acil.xls"));
+			commonService.addActivity ("Start");
+			HSSFWorkbook workbook = new HSSFWorkbook(excelFile);
+		    HSSFSheet datatypeSheet =  workbook.getSheetAt(0);
+		    Iterator<Row> iterator = datatypeSheet.iterator();
+	        iterator.next();
+	        List <RowContextER> rows = Lists.newArrayList();
+	        while (iterator.hasNext() ){
+	            Row currentRow = iterator.next();
+	            Iterator<Cell> cellIterator = currentRow.iterator();
+	           
+	            RowContextER rowContext = readRowER(cellIterator);
+	            rows.add(rowContext);
+	            if (rowContext != null)
+	            {
+	             	commonService.addRowContextER(rowContext);        	
+	            }
+	        }
+	        //update events by start date
+	      //  commonService.updateEventsByStartDate();
+			// eventcount and patientcount of activites
+	      //  commonService.updateActivities();
+	        // write events to excel fil
+			writeEventsExcelAcil();		
+			writeEventsCsv();		
+			
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -251,7 +361,143 @@ public class CommonController {
 	    }
 	    return false;
 	}
-
+	private RowContextKons readRowKons(Iterator<Cell> cellIterator) {
+		RowContextKons rowContext = RowContextKons.builder().build();
+		 while (cellIterator.hasNext()) 
+		 {
+			 Cell cell = cellIterator.next();
+			 System.out.println( "RowIndex:" + cell.getRowIndex() );
+				
+				
+			 if (cell.getRowIndex() >= 751)
+			 {
+				 return null;
+			 }
+			 if (cell.getColumnIndex() == 0 )	 //patient id
+				 rowContext.setPatientId(Integer.parseInt( cell.getStringCellValue())) ;
+			 if (cell.getColumnIndex() == 1 && (!isCellEmpty (cell))) //konsultasyon
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setKonsZamani( cell.getDateCellValue());
+			 }
+			 if (cell.getColumnIndex() == 2 && (!isCellEmpty (cell))) //karsılanma zamanı
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setKarsilanmaZamani(cell.getDateCellValue());
+			 }
+			 
+				 
+		 }
+		return rowContext;
+	}
+	private RowContextER readRowER(Iterator<Cell> cellIterator) {
+		 RowContextER rowContext = RowContextER.builder().build();
+			/*
+			 * 	private String acilDurum; // acil, normal, cok acil 
+				private String acileGelisDurum; // kendisi, ambulans
+				private Integer eventId;
+				private Integer patientId; 
+				private Integer patientName; 
+				private String gender; 
+				private Integer age; 
+				private String muayeneDoktor;
+				private String kararSonucu;
+				private Date acilGiris; 
+				private Date triyajGiris; 
+				private Date triyajCikis; 
+				private Date muayene; 
+				private Date musahedeGiris; 
+				private Date musahedeCikis; 
+				private Date acilCikis; 
+			 */
+		 while (cellIterator.hasNext()) 
+		 {
+				
+			 Cell cell = cellIterator.next();
+			 if (cell.getRowIndex() >= 2756)
+			 {
+				 return null;
+			 }
+			 System.out.println( "RowIndex:" + cell.getRowIndex() );
+			 if (cell.getColumnIndex() == 0 )	 //acil durum
+				 rowContext.setAcilDurum (cell.getStringCellValue() );
+			 if (cell.getColumnIndex() == 1 )	// acile geliş durum
+				 rowContext.setAcileGelisDurum (cell.getStringCellValue() );
+			 if (cell.getColumnIndex() == 2 )	//patient id
+				 rowContext.setPatientId(Integer.parseInt( cell.getStringCellValue())) ;
+			 if (cell.getColumnIndex() == 3 )	// patient Name
+				 rowContext.setPatientName(cell.getStringCellValue());
+			 if (cell.getColumnIndex() == 4 )	// gender
+				 rowContext.setGender (cell.getStringCellValue());
+			 if (cell.getColumnIndex() == 5) // age
+			 	rowContext.setAge( Integer.parseInt( cell.getStringCellValue())) ;
+			 if (cell.getColumnIndex() == 6 ) //muayenedoktoru
+				 rowContext.setDoctor(cell.getStringCellValue());
+			 if (cell.getColumnIndex() == 7 ) //karar sonucu
+				 rowContext.setKararSonucu(cell.getStringCellValue());
+			 if (cell.getColumnIndex() == 8  && (!isCellEmpty (cell))) //acile giris
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setAcilGiris( cell.getDateCellValue());
+			 }
+			 if (cell.getColumnIndex() == 9  && (!isCellEmpty (cell))) //triyaja giris
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setTriyajGiris( cell.getDateCellValue());
+			 }
+			 if (cell.getColumnIndex() == 10  && (!isCellEmpty (cell))) //triyaja çıkış
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setTriyajCikis ( cell.getDateCellValue());
+			 }
+			 if (cell.getColumnIndex() == 11  && (!isCellEmpty (cell))) // muayene
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setMuayene ( cell.getDateCellValue());
+			 }
+			 if (cell.getColumnIndex() == 12  && (!isCellEmpty (cell))) // musahede giris
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setMusahedeGiris ( cell.getDateCellValue());
+			 }
+			 if (cell.getColumnIndex() == 13  && (!isCellEmpty (cell))) // musahede çıkış
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setMusahedeCikis ( cell.getDateCellValue());
+			 }
+			
+			 if (cell.getColumnIndex() == 14  && (!isCellEmpty (cell))) // acile çıkış
+			 {	 	
+				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 rowContext.setAcilCikis ( cell.getDateCellValue());
+			 }
+			
+			 if (cell.getColumnIndex() == 15  ) // test var mı?
+				 rowContext.setTest( cell.getStringCellValue());
+			
+			 if (cell.getColumnIndex() == 16  ) // kons
+				 rowContext.setKons( cell.getStringCellValue());	
+			 if (cell.getColumnIndex() == 17  ) // ex
+				 rowContext.setEx( cell.getStringCellValue());	
+			 
+			 if (cell.getColumnIndex() == 18  ) // tanı 
+				 rowContext.setTani( cell.getStringCellValue());
+			 
+			 if (cell.getColumnIndex() == 19  ) // sevk edilen bolum
+				 rowContext.setSevkBolum( cell.getStringCellValue());
+			 
+			 if (cell.getColumnIndex() == 20  ) // başvuru doktor
+				 rowContext.setDoctor( cell.getStringCellValue());
+			
+			
+			
+			
+			 // set department and service 
+			 rowContext.setDepartment("Acil");
+			 rowContext.setService("Acil Servis");
+		 }
+		return rowContext;
+	}
 	private RowContext readRow(Iterator<Cell> cellIterator) {
 		 RowContext rowContext = RowContext.builder().build();;
 			
@@ -259,7 +505,7 @@ public class CommonController {
 		 {
 				
 			 Cell cell = cellIterator.next();
-			 if (cell.getRowIndex() >= 5)
+			 if (cell.getRowIndex() >= 3116)
 			 {
 				 return null;
 			 }
@@ -278,7 +524,7 @@ public class CommonController {
 				 rowContext.setSurgeryCategory (cell.getStringCellValue());
 			 if (cell.getColumnIndex() == 6)//admission date
 			 {
-				 System.out.println("Column index:" + cell.getColumnIndex() );
+				 System.out.println("Column index:" + cell.getColumnIndex()  );
 				 if (!isCellEmpty (cell))
 					 rowContext.setAdmissionDate (cell.getDateCellValue());
 			 }
