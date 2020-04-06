@@ -88,8 +88,7 @@ public class CommonController {
 	@GetMapping("/vt-hazirla")
 	public ResponseEntity<?> vtHazirla() {		
 		commonService.deleteAll();	
-		System.out.println("github flow");
-		System.out.println("github flow");
+		
 		//commonService.addActivity("Start");
 		try {
 			FileInputStream excelFile = new FileInputStream(new File("veri-ocak.xls"));
@@ -127,6 +126,7 @@ public class CommonController {
 	private void writeEventsExcelAcil() {
 		 Workbook workbook = new HSSFWorkbook();
 	     HSSFSheet sheet = (HSSFSheet) workbook.createSheet("ALL");
+	     Integer zoom=0;
 	     long cell=0;
 	     for (Iterator<Event> iter = er.findAll(new Sort("eventId")).iterator(); iter.hasNext();)
 	        {
