@@ -70,6 +70,7 @@ public class CommonController {
 	ActivityRepository ar;
 	@Autowired
 	PatternRepository pr;
+
 	@GetMapping("/process-map")
 	public ResponseEntity<ProcessMap> getProcessMap() {
 		commonService.processMap();
@@ -87,6 +88,7 @@ public class CommonController {
 	@GetMapping("/vt-hazirla")
 	public ResponseEntity<?> vtHazirla() {		
 		commonService.deleteAll();	
+		System.out.println("github flow");
 		//commonService.addActivity("Start");
 		try {
 			FileInputStream excelFile = new FileInputStream(new File("veri-ocak.xls"));
@@ -610,6 +612,7 @@ public class CommonController {
 	@GetMapping("/testEventsFile")
 	public ResponseEntity<?> testMap() {
 		 PrintWriter pw;
+		 Integer my=4;
 		try {
 			pw = new PrintWriter(new File("events-ALL.csv"));
 			String header = "Patient ID"+";" + "Age" + ";"+ "Gender" +";" +"Surgery No" +";"+ 
