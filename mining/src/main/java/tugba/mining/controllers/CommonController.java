@@ -89,6 +89,7 @@ public class CommonController {
 	public ResponseEntity<?> vtHazirla() {		
 		commonService.deleteAll();	
 		System.out.println("github flow");
+		System.out.println("github flow");
 		//commonService.addActivity("Start");
 		try {
 			FileInputStream excelFile = new FileInputStream(new File("veri-ocak.xls"));
