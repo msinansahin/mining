@@ -11,6 +11,8 @@ import tugba.mining.domain.Patient;
 import tugba.mining.domain.Pattern;
 import tugba.mining.util.EventRow;
 import tugba.mining.util.RowContext;
+import tugba.mining.util.RowContextER;
+import tugba.mining.util.RowContextKons;
 
 public interface CommonService {
 
@@ -30,7 +32,8 @@ public interface CommonService {
 	void deleteAll();
 	void deletePatterns();
 	
-	void addRowContext(RowContext row);
+	void addRowContext (RowContext row);
+	void addRowContextER (RowContextER row);
 
 	void addPatterns();
 	
