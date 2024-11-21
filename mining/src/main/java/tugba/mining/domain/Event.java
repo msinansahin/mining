@@ -40,6 +40,11 @@ public class Event extends BaseEntity {
 	private Date finishDate;
 	private String department;
 	private String service;
+	private String acileGelisDurum;
+	private String acilDurum;
+	private String tani;
+	
+	
 	//@ManyToOne
 	@Relationship(type = "DOCTOR", direction = Relationship.UNDIRECTED)
 	private Doctor doctor;
@@ -56,12 +61,6 @@ public class Event extends BaseEntity {
         sb.append(';');
         sb.append(this.getPatient().getGender());
         sb.append(';');
-        sb.append(this.getSurgery().getSurgeryNo());
-        sb.append(';');
-        sb.append(this.getSurgery().getSurgeryCategory());
-        sb.append(';');
-        sb.append(this.getSurgery().getSurgeryName());
-        sb.append(';');
         sb.append(this.getActivity().getActivityName());
         sb.append(';');
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -76,6 +75,10 @@ public class Event extends BaseEntity {
         sb.append(this.getService());
         sb.append(';');
         sb.append(this.getDoctor());
+        sb.append('\n');
+        sb.append(this.getAcilDurum());
+        sb.append('\n');
+        sb.append(this.getAcileGelisDurum());
         sb.append('\n');
         return(sb.toString());
 	}
